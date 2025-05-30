@@ -11,12 +11,12 @@ export default function Login() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Simulação: login com usuário e senha fixos
-    if (usuario === 'admin' && senha === '123456') {
-      alert('Login bem-sucedido! Redirecionando...');
+    // Simulação simples: login correto é 'Elton' e '123456'
+    if (usuario === 'Elton' && senha === '123456') {
+      alert('Login bem-sucedido!');
       router.push('/dashboard');
     } else {
-      alert('Usuário ou senha inválidos!');
+      alert('Usuário ou senha inválidos. Tente novamente.');
     }
   };
 
@@ -32,7 +32,9 @@ export default function Login() {
           padding: '2rem',
           border: '1px solid #ccc',
           borderRadius: '8px',
-          boxShadow: '0 0 10px rgba(0,0,0,0.1)'
+          boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+          backgroundColor: '#111',
+          color: '#fff'
         }}
       >
         <h1 style={{ textAlign: 'center' }}>Login</h1>
@@ -62,4 +64,5 @@ export default function Login() {
     </main>
   );
 }
+
 
