@@ -1,16 +1,23 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
+  const [usuario, setUsuario] = useState('');
   const [senha, setSenha] = useState('');
+  const router = useRouter();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Aqui vai a lógica de login no futuro
-    console.log('Email:', email, 'Senha:', senha);
-    alert('Login simulado com sucesso!');
+
+    // Simulação: login com usuário e senha fixos
+    if (usuario === 'admin' && senha === '123456') {
+      alert('Login bem-sucedido! Redirecionando...');
+      router.push('/dashboard');
+    } else {
+      alert('Usuário ou senha inválidos!');
+    }
   };
 
   return (
@@ -30,10 +37,10 @@ export default function Login() {
       >
         <h1 style={{ textAlign: 'center' }}>Login</h1>
         <input
-          type="email"
-          placeholder="Digite seu e-mail"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          type="text"
+          placeholder="Digite seu usuário"
+          value={usuario}
+          onChange={(e) => setUsuario(e.target.value)}
           required
           style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
         />
@@ -55,3 +62,4 @@ export default function Login() {
     </main>
   );
 }
+
