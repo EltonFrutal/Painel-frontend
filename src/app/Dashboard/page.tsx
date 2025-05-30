@@ -12,7 +12,7 @@ type Venda = {
   valor_venda: number;
 };
 
-export default function Home() {
+export default function Dashboard() {
   const [vendas, setVendas] = useState<any[]>([]);
   const [idEmpresa, setIdEmpresa] = useState('1111');
 

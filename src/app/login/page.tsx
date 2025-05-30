@@ -11,13 +11,12 @@ export default function Login() {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('https://painel-backend-35hm.onrender.com', {
-        usuario,
+      const response = await axios.post('https://painel-backend-35hm.onrender.com/auth/login', {
+        email: usuario,
         senha
       });
 
-      if (response.data.token || response.data.user) {
-        // Simples: salva no localStorage
+      if (response.data.user) {
         localStorage.setItem('logado', 'true');
         router.push('/dashboard');
       } else {
@@ -50,4 +49,3 @@ export default function Login() {
     </main>
   );
 }
-
