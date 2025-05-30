@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 type Venda = {
   id: number;
@@ -13,70 +11,35 @@ type Venda = {
 };
 
 export default function Dashboard() {
-  const [vendas, setVendas] = useState<any[]>([]);
-  const [idEmpresa, setIdEmpresa] = useState('1111');
+  const [vendas, setVendas] = useState<Venda[]>([]);
+  const [idEmpresa, setIdEmpresa] = useState<string>('1111');
 
   useEffect(() => {
     if (!idEmpresa) return;
 
-    axios.get(`https://painel-backend-35hm.onrender.com/vendas/${idEmpresa}`)
-      .then(response => {
-        const dados = response.data;
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`http://localhost:3001/vendas/${idEmpresa}`);
+        const data: Venda[] = await response.json();
+        setVendas(data);
+      } catch (error) {
+        console.error('Erro ao buscar vendas:', error);
+      }
+    };
 
-        // Agrupar por ano
-        const agrupadoPorAno = dados.reduce((acc: any, venda: any) => {
-          const ano = new Date(venda.data_emissao).getFullYear();
-          if (!acc[ano]) {
-            acc[ano] = { ano, total: 0 };
-          }
-          acc[ano].total += Number(venda.valor_venda);
-          return acc;
-        }, {});
-
-        const resultado = Object.values(agrupadoPorAno);
-        setVendas(resultado);
-      })
-      .catch(error => console.error(error));
+    fetchData();
   }, [idEmpresa]);
 
   return (
-    <main className="p-8">
-      <h1 className="text-3xl font-bold mb-4">Painel Gerencial</h1>
-
-      <div className="mb-4">
-        <label className="mr-2">ID da Organização:</label>
-        <input
-          type="text"
-          value={idEmpresa}
-          onChange={(e) => setIdEmpresa(e.target.value)}
-          className="border p-1"
-        />
-      </div>
-
-      <BarChart width={600} height={300} data={vendas}>
-        <CartesianGrid stroke="#ccc" />
-        <XAxis dataKey="ano" />
-        <YAxis />
-        <Tooltip />
-        <Bar dataKey="total" fill="#8884d8" />
-      </BarChart>
-
-      <table className="mt-8 border border-gray-300">
-        <thead>
-          <tr>
-            <th>Ano</th>
-            <th>Total Vendas</th>
-          </tr>
-        </thead>
-        <tbody>
-          {vendas.map((venda) => (
-            <tr key={venda.ano}>
-              <td>{venda.ano}</td>
-              <td>{venda.total.toFixed(2)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <main style={{ padding: '2rem', textAlign: 'center' }}>
+      <h1>Dashboard de Vendas</h1>
+      <ul>
+        {vendas.map((venda) => (
+          <li key={venda.id}>
+            {venda.nome_organizacao} - R$ {venda.valor_venda.toFixed(2)}
+          </li>
+        ))}
+      </ul>
     </main>
   );
 }
