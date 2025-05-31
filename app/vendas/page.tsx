@@ -2,7 +2,36 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, Tooltip, CartesianGrid, ResponsiveContainer, LabelList } from 'recharts';
+
+// Função para formatar os números em K, M, B (duas casas decimais)
+function formatNumber(value: number) {
+  if (value >= 1e9) return `${(value / 1e9).toFixed(2)}B`;
+  if (value >= 1e6) return `${(value / 1e6).toFixed(2)}M`;
+  if (value >= 1e3) return `${(value / 1e3).toFixed(2)}K`;
+  return value.toFixed(2);
+}
+
+// Tooltip customizado
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div style={{
+        background: '#222',
+        borderRadius: 8,
+        padding: 12,
+        color: '#fff',
+        boxShadow: '0 2px 8px #0006',
+        fontSize: 14
+      }}>
+        <strong>{label}</strong>
+        <br />
+        Total: <span style={{ color: '#82ca9d', fontWeight: 600 }}>{formatNumber(payload[0].value)}</span>
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function Vendas() {
   const [dados, setDados] = useState<any[]>([]);
@@ -19,16 +48,12 @@ export default function Vendas() {
     try {
       const response = await fetch(`/api/vendas?ano=${anoSelecionado || ''}&organizacao=${organizacao}&empresa=${empresa}`);
       const data = await response.json();
-      console.log('Resposta da API:', data);
-
       if (Array.isArray(data)) {
         setDados(data);
       } else {
-        console.error('Resposta não é um array:', data);
         setDados([]);
       }
     } catch (error) {
-      console.error('Erro ao buscar dados:', error);
       setDados([]);
     }
   };
@@ -42,7 +67,13 @@ export default function Vendas() {
     'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
   ];
 
-  const cores = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c', '#d0ed57', '#8dd1e1'];
+  // Cálculo do valor máximo das barras para escala dinâmica
+  const maxAnual = !anoSelecionado
+    ? Math.max(...dados.map(item => item.total || 0), 0)
+    : 0;
+  const maxMensal = anoSelecionado
+    ? Math.max(...dados.map(item => item.total || 0), 0)
+    : 0;
 
   return (
     <main style={{ padding: '2rem', backgroundColor: '#111', color: '#fff', minHeight: '100vh' }}>
@@ -50,74 +81,145 @@ export default function Vendas() {
         {anoSelecionado ? `Vendas Mensais de ${anoSelecionado}` : 'Vendas Anuais'}
       </h1>
 
-      <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem' }}>
-        <div>
-          <label>Organização:</label>
-          <select
-            value={organizacao}
-            onChange={(e) => router.push(`/vendas?ano=${anoSelecionado || ''}&organizacao=${e.target.value}&empresa=${empresa}`)}
-            style={{ padding: '0.5rem', marginLeft: '0.5rem' }}
-          >
-            <option value="">Todas</option>
-            {orgOpcoes.map((org) => (
-              <option key={org} value={org}>{org}</option>
-            ))}
-          </select>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '1.5rem',
+        marginBottom: '2rem'
+      }}>
+        {/* Gráfico 1 - Com dados */}
+        <div style={{
+          background: 'linear-gradient(135deg, #232526 0%, #414345 100%)',
+          borderRadius: 16,
+          boxShadow: '0 4px 24px #0004',
+          padding: '1.5rem',
+          minHeight: 336,
+          minWidth: 0,
+          position: 'relative'
+        }}>
+          {/* Seta para voltar (só aparece no mensal) */}
+          {anoSelecionado && (
+            <button
+              onClick={() => router.push(`/vendas?organizacao=${organizacao}&empresa=${empresa}`)}
+              style={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 4,
+                zIndex: 2
+              }}
+              title="Voltar para gráfico anual"
+            >
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="12" fill="#222" opacity="0.7"/>
+                <path d="M15 7l-5 5 5 5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          )}
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart
+              data={dados.map((item) => ({
+                ...item,
+                mes: item.mes ? meses[item.mes] : item.mes,
+              }))}
+              margin={{ top: 16, right: 24, left: 0, bottom: 5 }}
+              onClick={(e) => {
+                if (e && e.activeLabel && !anoSelecionado) {
+                  router.push(`/vendas?ano=${e.activeLabel}&organizacao=${organizacao}&empresa=${empresa}`);
+                }
+              }}
+              style={{ fontFamily: 'Inter, Arial, sans-serif' }}
+            >
+              <defs>
+                <linearGradient id="colorBarAnual" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.9}/>
+                  <stop offset="100%" stopColor="#1e3a8a" stopOpacity={0.8}/>
+                </linearGradient>
+                <linearGradient id="colorBarMensal" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#22c55e" stopOpacity={0.9}/>
+                  <stop offset="100%" stopColor="#166534" stopOpacity={0.8}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="2 6" stroke="#333" />
+              <XAxis dataKey={anoSelecionado ? 'mes' : 'ano'} stroke="#aaa" tick={{ fontSize: 13 }} />
+              {/* Removido o YAxis para não mostrar escala à esquerda */}
+              <Tooltip
+                content={<CustomTooltip />}
+                formatter={(value: number) => formatNumber(value)}
+              />
+              {/* Removido a legenda */}
+              <Bar
+                dataKey="total"
+                fill={anoSelecionado ? "url(#colorBarMensal)" : "url(#colorBarAnual)"}
+                radius={[8, 8, 0, 0]}
+                barSize={40}
+                animationDuration={900}
+              >
+                <LabelList
+                  dataKey="total"
+                  position="top"
+                  formatter={formatNumber}
+                  style={{
+                    fill: '#fff',
+                    fontWeight: 400,
+                    fontSize: 11,
+                    fontFamily: 'Inter, Arial, sans-serif',
+                    textShadow: '0 1px 2px #000'
+                  }}
+                />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
-        <div>
-          <label>Empresa:</label>
-          <select
-            value={empresa}
-            onChange={(e) => router.push(`/vendas?ano=${anoSelecionado || ''}&organizacao=${organizacao}&empresa=${e.target.value}`)}
-            style={{ padding: '0.5rem', marginLeft: '0.5rem' }}
-          >
-            <option value="">Todas</option>
-            {empresaOpcoes.map((emp) => (
-              <option key={emp} value={emp}>{emp}</option>
-            ))}
-          </select>
+
+        {/* Gráfico 2 - Vazio */}
+        <div style={{
+          background: 'linear-gradient(135deg, #232526 0%, #414345 100%)',
+          borderRadius: 16,
+          boxShadow: '0 4px 24px #0004',
+          padding: '1.5rem',
+          minHeight: 336,
+          minWidth: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <span style={{ color: '#888', fontSize: 18 }}>Sem dados</span>
+        </div>
+
+        {/* Gráfico 3 - Vazio */}
+        <div style={{
+          background: 'linear-gradient(135deg, #232526 0%, #414345 100%)',
+          borderRadius: 16,
+          boxShadow: '0 4px 24px #0004',
+          padding: '1.5rem',
+          minHeight: 336,
+          minWidth: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <span style={{ color: '#888', fontSize: 18 }}>Sem dados</span>
+        </div>
+
+        {/* Gráfico 4 - Vazio */}
+        <div style={{
+          background: 'linear-gradient(135deg, #232526 0%, #414345 100%)',
+          borderRadius: 16,
+          boxShadow: '0 4px 24px #0004',
+          padding: '1.5rem',
+          minHeight: 336,
+          minWidth: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <span style={{ color: '#888', fontSize: 18 }}>Sem dados</span>
         </div>
       </div>
-
-      <ResponsiveContainer width="100%" height={400}>
-        <BarChart
-          data={dados.map((item, index) => ({
-            ...item,
-            mes: item.mes ? meses[item.mes] : item.mes,
-            fill: cores[index % cores.length]
-          }))}
-          margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
-          onClick={(e) => {
-            if (e && e.activeLabel && !anoSelecionado) {
-              router.push(`/vendas?ano=${e.activeLabel}&organizacao=${organizacao}&empresa=${empresa}`);
-            }
-          }}
-        >
-          <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-          <XAxis dataKey={anoSelecionado ? 'mes' : 'ano'} stroke="#fff" />
-          <YAxis stroke="#fff" />
-          <Tooltip contentStyle={{ backgroundColor: '#333', color: '#fff' }} />
-          <Legend />
-          <Bar dataKey="total" fill="#82ca9d" />
-        </BarChart>
-      </ResponsiveContainer>
-
-      {anoSelecionado && (
-        <button
-          onClick={() => router.push(`/vendas?organizacao=${organizacao}&empresa=${empresa}`)}
-          style={{
-            marginTop: '1rem',
-            padding: '0.5rem 1rem',
-            backgroundColor: '#444',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-          }}
-        >
-          Voltar para Vendas Anuais
-        </button>
-      )}
     </main>
   );
 }
