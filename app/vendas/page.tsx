@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { BarChart, Bar, XAxis, Tooltip, CartesianGrid, ResponsiveContainer, LabelList } from 'recharts';
+import { BarChart, Bar, XAxis, Tooltip, CartesianGrid, ResponsiveContainer, LabelList, YAxis } from 'recharts';
 
 // Função para formatar os números em K, M, B (duas casas decimais)
 function formatNumber(value: number) {
@@ -77,6 +77,34 @@ export default function Vendas() {
 
   return (
     <main style={{ padding: '2rem', backgroundColor: '#111', color: '#fff', minHeight: '100vh' }}>
+      {/* Botão Home */}
+      <button
+        onClick={() => router.push('/dashboard')}
+        style={{
+          marginBottom: '1.5rem',
+          padding: '0.5rem 1.2rem',
+          background: 'linear-gradient(90deg, #2563eb 0%, #60a5fa 100%)',
+          color: '#fff',
+          border: 'none',
+          borderRadius: 8,
+          fontFamily: 'Inter, Arial, sans-serif',
+          fontSize: 15,
+          fontWeight: 500,
+          cursor: 'pointer',
+          boxShadow: '0 2px 8px #0002',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8
+        }}
+        title="Voltar para o Dashboard"
+      >
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
+          <path d="M3 12L12 4l9 8" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M5 10v10h14V10" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        Dashboard
+      </button>
+
       <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>
         {anoSelecionado ? `Vendas Mensais de ${anoSelecionado}` : 'Vendas Anuais'}
       </h1>
@@ -145,7 +173,21 @@ export default function Vendas() {
               </defs>
               <CartesianGrid strokeDasharray="2 6" stroke="#333" />
               <XAxis dataKey={anoSelecionado ? 'mes' : 'ano'} stroke="#aaa" tick={{ fontSize: 13 }} />
-              {/* Removido o YAxis para não mostrar escala à esquerda */}
+              <YAxis
+                domain={[
+                  0,
+                  () => {
+                    if (anoSelecionado) {
+                      return maxMensal ? Math.ceil(maxMensal * 1.2) : 1;
+                    }
+                    return maxAnual ? Math.ceil(maxAnual * 1.2) : 1;
+                  }
+                ]}
+                axisLine={false}
+                tickLine={false}
+                tick={false}
+                width={0}
+              />
               <Tooltip
                 content={<CustomTooltip />}
                 formatter={(value: number) => formatNumber(value)}
