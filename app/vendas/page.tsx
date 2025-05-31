@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, Legend } from 'recharts';
 
 export default function Vendas() {
   const [dados, setDados] = useState<any[]>([]);
+  const [orgOpcoes, setOrgOpcoes] = useState<string[]>(['BY LEKA', 'Clinivet', 'Outros']);
+  const [empresaOpcoes, setEmpresaOpcoes] = useState<string[]>(['Empresa A', 'Empresa B', 'Empresa C']);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -40,6 +42,8 @@ export default function Vendas() {
     'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
   ];
 
+  const cores = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c', '#d0ed57', '#8dd1e1'];
+
   return (
     <main style={{ padding: '2rem', backgroundColor: '#111', color: '#fff', minHeight: '100vh' }}>
       <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>
@@ -49,31 +53,38 @@ export default function Vendas() {
       <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem' }}>
         <div>
           <label>Organização:</label>
-          <input
-            type="text"
-            defaultValue={organizacao}
+          <select
+            value={organizacao}
             onChange={(e) => router.push(`/vendas?ano=${anoSelecionado || ''}&organizacao=${e.target.value}&empresa=${empresa}`)}
-            placeholder="Digite a organização"
             style={{ padding: '0.5rem', marginLeft: '0.5rem' }}
-          />
+          >
+            <option value="">Todas</option>
+            {orgOpcoes.map((org) => (
+              <option key={org} value={org}>{org}</option>
+            ))}
+          </select>
         </div>
         <div>
           <label>Empresa:</label>
-          <input
-            type="text"
-            defaultValue={empresa}
+          <select
+            value={empresa}
             onChange={(e) => router.push(`/vendas?ano=${anoSelecionado || ''}&organizacao=${organizacao}&empresa=${e.target.value}`)}
-            placeholder="Digite a empresa"
             style={{ padding: '0.5rem', marginLeft: '0.5rem' }}
-          />
+          >
+            <option value="">Todas</option>
+            {empresaOpcoes.map((emp) => (
+              <option key={emp} value={emp}>{emp}</option>
+            ))}
+          </select>
         </div>
       </div>
 
       <ResponsiveContainer width="100%" height={400}>
         <BarChart
-          data={dados.map((item) => ({
+          data={dados.map((item, index) => ({
             ...item,
-            mes: item.mes ? meses[item.mes] : item.mes
+            mes: item.mes ? meses[item.mes] : item.mes,
+            fill: cores[index % cores.length]
           }))}
           margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
           onClick={(e) => {
@@ -82,10 +93,11 @@ export default function Vendas() {
             }
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#444" />
           <XAxis dataKey={anoSelecionado ? 'mes' : 'ano'} stroke="#fff" />
           <YAxis stroke="#fff" />
-          <Tooltip />
+          <Tooltip contentStyle={{ backgroundColor: '#333', color: '#fff' }} />
+          <Legend />
           <Bar dataKey="total" fill="#82ca9d" />
         </BarChart>
       </ResponsiveContainer>
