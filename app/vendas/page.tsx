@@ -211,7 +211,6 @@ export default function Vendas() {
           </ResponsiveContainer>
         </div>
 
-        {/* Gráficos 2 a 4 - Vazio */}
         {Array.from({ length: 3 }).map((_, index) => (
           <div key={index} style={{
             background: 'linear-gradient(135deg, #232526 0%, #414345 100%)',
@@ -231,4 +230,3 @@ export default function Vendas() {
     </main>
   );
 }
-
