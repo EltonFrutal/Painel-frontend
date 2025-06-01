@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function Login() {
+export default function Home() {
   const [usuario, setUsuario] = useState('');
   const [senha, setSenha] = useState('');
   const router = useRouter();
