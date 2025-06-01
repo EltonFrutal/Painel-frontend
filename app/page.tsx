@@ -6,16 +6,12 @@ import { useRouter } from 'next/navigation';
 export default function Home() {
   const [usuario, setUsuario] = useState('');
   const [senha, setSenha] = useState('');
-  const [sucesso, setSucesso] = useState(false);
   const router = useRouter();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (usuario === 'Elton' && senha === '123456') {
-      setSucesso(true);
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 3000);
+      router.push('/dashboard');
     } else {
       alert('Usuário ou senha inválidos. Tente novamente.');
     }
@@ -115,21 +111,6 @@ export default function Home() {
         >
           Entrar
         </button>
-        {sucesso && (
-          <div style={{
-            marginTop: 10,
-            background: '#22c55e',
-            color: '#fff',
-            padding: '0.75rem 1rem',
-            borderRadius: 8,
-            fontWeight: 600,
-            fontSize: 16,
-            boxShadow: '0 2px 8px #22c55e33',
-            transition: 'opacity 0.3s'
-          }}>
-            Login bem-sucedido! Redirecionando...
-          </div>
-        )}
       </form>
     </main>
   );
