@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { BarChart, Bar, XAxis, Tooltip, CartesianGrid, ResponsiveContainer, LabelList, YAxis } from 'recharts';
+import type { CategoricalChartProps } from 'recharts/types/chart/generateCategoricalChart';
 
 // Função para formatar números em K, M, B
 function formatNumber(value: number) {
@@ -154,7 +155,7 @@ export default function Vendas() {
                 mes: item.mes ? meses[item.mes] : item.mes,
               }))}
               margin={{ top: 16, right: 24, left: 0, bottom: 5 }}
-              onClick={(e) => {
+              onClick={e => {
                 if (e && 'activeLabel' in e && e.activeLabel && !anoSelecionado) {
                   router.push(`/vendas?ano=${e.activeLabel}&organizacao=${organizacao}&empresa=${empresa}`);
                 }
