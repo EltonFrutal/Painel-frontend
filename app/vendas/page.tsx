@@ -33,7 +33,7 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean, payload?:
   return null;
 };
 
-// No topo do arquivo, defina:
+// Defina o tipo dos dados de vendas no topo do arquivo
 type Venda = {
   total: number;
   mes?: number;
