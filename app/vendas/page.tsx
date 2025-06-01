@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { BarChart, Bar, XAxis, Tooltip, CartesianGrid, ResponsiveContainer, LabelList, YAxis } from 'recharts';
 
+// Função para formatar os números em K, M, B (duas casas decimais)
 function formatNumber(value: number) {
   if (value >= 1e9) return `${(value / 1e9).toFixed(2)}B`;
   if (value >= 1e6) return `${(value / 1e6).toFixed(2)}M`;
@@ -11,14 +12,11 @@ function formatNumber(value: number) {
   return value.toFixed(2);
 }
 
+// Tipo dos dados de vendas
 type Venda = {
   total: number;
   mes?: number;
   ano?: number;
-};
-
-type CustomPayload = {
-  value: number;
 };
 
 const CustomTooltip = ({
@@ -27,7 +25,7 @@ const CustomTooltip = ({
   label,
 }: {
   active?: boolean;
-  payload?: CustomPayload[];
+  payload?: { value: number }[];
   label?: string;
 }) => {
   if (active && payload && payload.length) {
@@ -94,11 +92,9 @@ export default function Vendas() {
           color: '#fff',
           border: 'none',
           borderRadius: 8,
-          fontFamily: 'Inter, Arial, sans-serif',
           fontSize: 15,
           fontWeight: 500,
           cursor: 'pointer',
-          boxShadow: '0 2px 8px #0002',
           display: 'flex',
           alignItems: 'center',
           gap: 8
@@ -141,8 +137,7 @@ export default function Vendas() {
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                padding: 4,
-                zIndex: 2
+                padding: 4
               }}
               title="Voltar para gráfico anual"
             >
@@ -165,7 +160,6 @@ export default function Vendas() {
                   router.push(`/vendas?ano=${e.activeLabel}&organizacao=${organizacao}&empresa=${empresa}`);
                 }
               }}
-              style={{ fontFamily: 'Inter, Arial, sans-serif' }}
             >
               <defs>
                 <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
@@ -183,7 +177,7 @@ export default function Vendas() {
                 tick={false}
                 width={0}
               />
-              <Tooltip content={<CustomTooltip />} formatter={(value: number) => formatNumber(value)} />
+              <Tooltip content={<CustomTooltip />} />
               <Bar
                 dataKey="total"
                 fill="url(#colorBar)"
@@ -199,7 +193,6 @@ export default function Vendas() {
                     fill: '#fff',
                     fontWeight: 400,
                     fontSize: 11,
-                    fontFamily: 'Inter, Arial, sans-serif',
                     textShadow: '0 1px 2px #000'
                   }}
                 />
@@ -227,4 +220,3 @@ export default function Vendas() {
     </main>
   );
 }
-
