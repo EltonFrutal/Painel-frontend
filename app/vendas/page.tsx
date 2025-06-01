@@ -24,7 +24,7 @@ const CustomTooltip = ({
   label,
 }: {
   active?: boolean;
-  payload?: Payload<any, string>[];
+  payload?: { value: number; payload: Venda }[] | undefined;
   label?: string;
 }) => {
   if (active && payload && payload.length) {
@@ -39,7 +39,7 @@ const CustomTooltip = ({
       }}>
         <strong>{label}</strong>
         <br />
-        Total: <span style={{ color: '#82ca9d', fontWeight: 600 }}>{formatNumber(payload[0].value as number)}</span>
+        Total: <span style={{ color: '#82ca9d', fontWeight: 600 }}>{formatNumber(payload[0].value)}</span>
       </div>
     );
   }
