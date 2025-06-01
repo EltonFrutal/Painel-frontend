@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { BarChart, Bar, XAxis, Tooltip, CartesianGrid, ResponsiveContainer, LabelList, YAxis, TooltipProps } from 'recharts';
+import { BarChart, Bar, XAxis, Tooltip, CartesianGrid, ResponsiveContainer, LabelList, YAxis } from 'recharts';
 
 // Função para formatar os números em K, M, B (duas casas decimais)
 function formatNumber(value: number) {
@@ -19,8 +19,20 @@ type Venda = {
   ano?: number;
 };
 
-// Tooltip customizado
-const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
+// Tipo para o CustomTooltip payload
+type CustomPayload = {
+  value: number;
+};
+
+const CustomTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: CustomPayload[];
+  label?: string;
+}) => {
   if (active && payload && payload.length) {
     return (
       <div style={{
@@ -33,7 +45,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>)
       }}>
         <strong>{label}</strong>
         <br />
-        Total: <span style={{ color: '#82ca9d', fontWeight: 600 }}>{formatNumber(payload[0].value as number)}</span>
+        Total: <span style={{ color: '#82ca9d', fontWeight: 600 }}>{formatNumber(payload[0].value)}</span>
       </div>
     );
   }
@@ -152,7 +164,7 @@ export default function Vendas() {
               }))}
               margin={{ top: 16, right: 24, left: 0, bottom: 5 }}
               onClick={(e) => {
-                if (e && e.activeLabel && !anoSelecionado) {
+                if (e && 'activeLabel' in e && e.activeLabel && !anoSelecionado) {
                   router.push(`/vendas?ano=${e.activeLabel}&organizacao=${organizacao}&empresa=${empresa}`);
                 }
               }}
@@ -219,3 +231,4 @@ export default function Vendas() {
     </main>
   );
 }
+
