@@ -10,7 +10,7 @@ export async function GET(request: Request) {
 
   try {
     let query = '';
-    let params: any[] = [];
+    const params: string[] = [];
 
     if (ano) {
       // 📊 Modo mensal

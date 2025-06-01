@@ -58,7 +58,7 @@ export default function Vendas() {
       } else {
         setDados([]);
       }
-    } catch (error) {
+    } catch {
       setDados([]);
     }
   }, [anoSelecionado, organizacao, empresa]);
