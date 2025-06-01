@@ -21,7 +21,7 @@ export default function Login() {
   };
 
   return (
-    <main style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+    <main style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#fff' }}>
       <form
         onSubmit={handleLogin}
         style={{
@@ -37,7 +37,7 @@ export default function Login() {
           color: '#fff'
         }}
       >
-        <h1 style={{ textAlign: 'center' }}>Login</h1>
+        <h1 style={{ textAlign: 'center' }}>Login de Usuário</h1>
         <input
           type="text"
           placeholder="Digite seu usuário"
@@ -56,7 +56,14 @@ export default function Login() {
         />
         <button
           type="submit"
-          style={{ padding: '0.75rem', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+          style={{
+            padding: '0.75rem',
+            backgroundColor: '#e11d48', // vermelho
+            color: '#fff',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
         >
           Entrar
         </button>
