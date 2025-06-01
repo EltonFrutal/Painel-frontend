@@ -58,7 +58,7 @@ export default function Login() {
           type="submit"
           style={{
             padding: '0.75rem',
-            backgroundColor: '#a3e635', // verde limão
+            backgroundColor: '#fde047', // amarelo
             color: '#111',
             border: 'none',
             borderRadius: '4px',
