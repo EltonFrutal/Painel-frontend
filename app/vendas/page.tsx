@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { BarChart, Bar, XAxis, Tooltip, CartesianGrid, ResponsiveContainer, LabelList, YAxis } from 'recharts';
 
@@ -13,7 +13,7 @@ function formatNumber(value: number) {
 }
 
 // Tooltip customizado
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: { active?: boolean, payload?: any, label?: string }) => {
   if (active && payload && payload.length) {
     return (
       <div style={{
@@ -33,10 +33,15 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+// Defina um tipo para os dados de vendas
+type Venda = {
+  total: number;
+  mes?: number;
+  ano?: number;
+};
+
 export default function Vendas() {
-  const [dados, setDados] = useState<any[]>([]);
-  const [orgOpcoes, setOrgOpcoes] = useState<string[]>(['BY LEKA', 'Clinivet', 'Outros']);
-  const [empresaOpcoes, setEmpresaOpcoes] = useState<string[]>(['Empresa A', 'Empresa B', 'Empresa C']);
+  const [dados, setDados] = useState<Venda[]>([]);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -44,7 +49,7 @@ export default function Vendas() {
   const organizacao = searchParams.get('organizacao') || '';
   const empresa = searchParams.get('empresa') || '';
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const response = await fetch(`/api/vendas?ano=${anoSelecionado || ''}&organizacao=${organizacao}&empresa=${empresa}`);
       const data = await response.json();
@@ -56,11 +61,11 @@ export default function Vendas() {
     } catch (error) {
       setDados([]);
     }
-  };
+  }, [anoSelecionado, organizacao, empresa]);
 
   useEffect(() => {
     fetchData();
-  }, [anoSelecionado, organizacao, empresa]);
+  }, [fetchData]);
 
   const meses = [
     '', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio',
