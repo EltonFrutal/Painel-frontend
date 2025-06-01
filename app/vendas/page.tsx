@@ -41,7 +41,6 @@ type Venda = {
 };
 
 export default function Vendas() {
-  // E troque o useState:
   const [dados, setDados] = useState<Venda[]>([]);
   const router = useRouter();
   const searchParams = useSearchParams();
