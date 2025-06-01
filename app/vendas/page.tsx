@@ -33,7 +33,7 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean, payload?:
   return null;
 };
 
-// Defina o tipo dos dados de vendas no topo do arquivo
+// No topo do arquivo, defina:
 type Venda = {
   total: number;
   mes?: number;
@@ -41,6 +41,7 @@ type Venda = {
 };
 
 export default function Vendas() {
+  // E troque o useState:
   const [dados, setDados] = useState<Venda[]>([]);
   const router = useRouter();
   const searchParams = useSearchParams();
