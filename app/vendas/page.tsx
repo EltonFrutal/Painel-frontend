@@ -3,10 +3,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { BarChart, Bar, XAxis, Tooltip, CartesianGrid, ResponsiveContainer, LabelList, YAxis } from 'recharts';
-import type { CategoricalChartProps } from 'recharts/types/chart/generateCategoricalChart';
 
 // Função para formatar números em K, M, B
-function formatNumber(value: number) {
+function formatNumber(value: number): string {
   if (value >= 1e9) return `${(value / 1e9).toFixed(2)}B`;
   if (value >= 1e6) return `${(value / 1e6).toFixed(2)}M`;
   if (value >= 1e3) return `${(value / 1e3).toFixed(2)}K`;
@@ -19,23 +18,21 @@ type Venda = {
   ano?: number;
 };
 
-const CustomTooltip = ({
-  active,
-  payload,
-  label,
-}: {
+interface TooltipProps {
   active?: boolean;
   payload?: Array<{ value?: number }>;
   label?: string;
-}) => {
-  if (active && payload && payload.length && payload[0].value !== undefined) {
+}
+
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
+  if (active && payload && payload.length && payload[0]?.value !== undefined) {
     return (
       <div style={{
         background: '#222',
         borderRadius: 8,
         padding: 12,
         color: '#fff',
-        boxShadow: '0 2px 8px #0006',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
         fontSize: 14
       }}>
         <strong>{label}</strong>
@@ -49,6 +46,7 @@ const CustomTooltip = ({
 
 export default function Vendas() {
   const [dados, setDados] = useState<Venda[]>([]);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -57,16 +55,32 @@ export default function Vendas() {
   const empresa = searchParams.get('empresa') || '';
 
   const fetchData = useCallback(async () => {
+    setLoading(true);
     try {
-      const response = await fetch(`/api/vendas?ano=${anoSelecionado || ''}&organizacao=${organizacao}&empresa=${empresa}`);
+      const params = new URLSearchParams();
+      if (anoSelecionado) params.append('ano', anoSelecionado);
+      if (organizacao) params.append('organizacao', organizacao);
+      if (empresa) params.append('empresa', empresa);
+
+      const response = await fetch(`/api/vendas?${params.toString()}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
+      
       if (Array.isArray(data)) {
         setDados(data);
       } else {
+        console.warn('Dados recebidos não são um array:', data);
         setDados([]);
       }
-    } catch {
+    } catch (error) {
+      console.error('Erro ao buscar dados:', error);
       setDados([]);
+    } finally {
+      setLoading(false);
     }
   }, [anoSelecionado, organizacao, empresa]);
 
@@ -81,10 +95,40 @@ export default function Vendas() {
 
   const maxValor = Math.max(...dados.map(item => item.total || 0), 0);
 
+  // Processa os dados para o gráfico
+  const dadosProcessados = dados.map(item => ({
+    ...item,
+    mes: item.mes ? meses[item.mes] : item.ano?.toString() || '',
+    displayValue: anoSelecionado ? (item.mes ? meses[item.mes] : '') : item.ano?.toString()
+  }));
+
+  const handleBarClick = useCallback((data: any) => {
+    if (data && data.activeLabel && !anoSelecionado) {
+      const params = new URLSearchParams();
+      params.append('ano', data.activeLabel);
+      if (organizacao) params.append('organizacao', organizacao);
+      if (empresa) params.append('empresa', empresa);
+      
+      router.push(`/vendas?${params.toString()}`);
+    }
+  }, [anoSelecionado, organizacao, empresa, router]);
+
+  const handleBackToAnnual = useCallback(() => {
+    const params = new URLSearchParams();
+    if (organizacao) params.append('organizacao', organizacao);
+    if (empresa) params.append('empresa', empresa);
+    
+    router.push(`/vendas?${params.toString()}`);
+  }, [organizacao, empresa, router]);
+
+  const handleBackToDashboard = useCallback(() => {
+    router.push('/dashboard');
+  }, [router]);
+
   return (
     <main style={{ padding: '2rem', backgroundColor: '#111', color: '#fff', minHeight: '100vh' }}>
       <button
-        onClick={() => router.push('/dashboard')}
+        onClick={handleBackToDashboard}
         style={{
           marginBottom: '1.5rem',
           padding: '0.5rem 1.2rem',
@@ -121,7 +165,7 @@ export default function Vendas() {
         <div style={{
           background: 'linear-gradient(135deg, #232526 0%, #414345 100%)',
           borderRadius: 16,
-          boxShadow: '0 4px 24px #0004',
+          boxShadow: '0 4px 24px rgba(0, 0, 0, 0.25)',
           padding: '1.5rem',
           minHeight: 336,
           minWidth: 0,
@@ -129,7 +173,7 @@ export default function Vendas() {
         }}>
           {anoSelecionado && (
             <button
-              onClick={() => router.push(`/vendas?organizacao=${organizacao}&empresa=${empresa}`)}
+              onClick={handleBackToAnnual}
               style={{
                 position: 'absolute',
                 top: 16,
@@ -148,64 +192,83 @@ export default function Vendas() {
             </button>
           )}
 
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart
-              data={dados.map(item => ({
-                ...item,
-                mes: item.mes ? meses[item.mes] : item.mes,
-              }))}
-              margin={{ top: 16, right: 24, left: 0, bottom: 5 }}
-              onClick={e => {
-                if (e && 'activeLabel' in e && e.activeLabel && !anoSelecionado) {
-                  router.push(`/vendas?ano=${e.activeLabel}&organizacao=${organizacao}&empresa=${empresa}`);
-                }
-              }}
-            >
-              <defs>
-                <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={anoSelecionado ? "#22c55e" : "#3b82f6"} stopOpacity={0.9} />
-                  <stop offset="100%" stopColor={anoSelecionado ? "#166534" : "#1e3a8a"} stopOpacity={0.8} />
-                </linearGradient>
-              </defs>
-
-              <CartesianGrid strokeDasharray="2 6" stroke="#333" />
-              <XAxis dataKey={anoSelecionado ? 'mes' : 'ano'} stroke="#aaa" tick={{ fontSize: 13 }} />
-              <YAxis
-                domain={[0, maxValor ? Math.ceil(maxValor * 1.2) : 1]}
-                axisLine={false}
-                tickLine={false}
-                tick={false}
-                width={0}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar
-                dataKey="total"
-                fill="url(#colorBar)"
-                radius={[8, 8, 0, 0]}
-                barSize={40}
-                animationDuration={900}
+          {loading ? (
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              height: 280,
+              color: '#888' 
+            }}>
+              Carregando dados...
+            </div>
+          ) : dadosProcessados.length === 0 ? (
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              height: 280,
+              color: '#888' 
+            }}>
+              Nenhum dado encontrado
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart
+                data={dadosProcessados}
+                margin={{ top: 16, right: 24, left: 0, bottom: 5 }}
+                onClick={handleBarClick}
               >
-                <LabelList
-                  dataKey="total"
-                  position="top"
-                  formatter={formatNumber}
-                  style={{
-                    fill: '#fff',
-                    fontWeight: 400,
-                    fontSize: 11,
-                    textShadow: '0 1px 2px #000'
-                  }}
+                <defs>
+                  <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={anoSelecionado ? "#22c55e" : "#3b82f6"} stopOpacity={0.9} />
+                    <stop offset="100%" stopColor={anoSelecionado ? "#166534" : "#1e3a8a"} stopOpacity={0.8} />
+                  </linearGradient>
+                </defs>
+
+                <CartesianGrid strokeDasharray="2 6" stroke="#333" />
+                <XAxis 
+                  dataKey={anoSelecionado ? 'mes' : 'ano'} 
+                  stroke="#aaa" 
+                  tick={{ fontSize: 13 }} 
                 />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+                <YAxis
+                  domain={[0, maxValor ? Math.ceil(maxValor * 1.2) : 1]}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={false}
+                  width={0}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar
+                  dataKey="total"
+                  fill="url(#colorBar)"
+                  radius={[8, 8, 0, 0]}
+                  maxBarSize={60}
+                  animationDuration={900}
+                >
+                  <LabelList
+                    dataKey="total"
+                    position="top"
+                    formatter={formatNumber}
+                    style={{
+                      fill: '#fff',
+                      fontWeight: 400,
+                      fontSize: 11,
+                      textShadow: '0 1px 2px rgba(0, 0, 0, 1)'
+                    }}
+                  />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
 
         {Array.from({ length: 3 }).map((_, index) => (
           <div key={index} style={{
             background: 'linear-gradient(135deg, #232526 0%, #414345 100%)',
             borderRadius: 16,
-            boxShadow: '0 4px 24px #0004',
+            boxShadow: '0 4px 24px rgba(0, 0, 0, 0.25)',
             padding: '1.5rem',
             minHeight: 336,
             minWidth: 0,
