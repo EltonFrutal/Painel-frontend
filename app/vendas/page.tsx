@@ -23,7 +23,7 @@ const CustomTooltip = ({
   label,
 }: {
   active?: boolean;
-  payload?: { value: number }[];
+  payload?: Array<{ value: number; payload: Venda }>;
   label?: string;
 }) => {
   if (active && payload && payload.length) {
