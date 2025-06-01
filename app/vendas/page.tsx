@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { BarChart, Bar, XAxis, Tooltip, CartesianGrid, ResponsiveContainer, LabelList, YAxis } from 'recharts';
+import { BarChart, Bar, XAxis, Tooltip, CartesianGrid, ResponsiveContainer, LabelList, YAxis, TooltipProps } from 'recharts';
 
 // Função para formatar os números em K, M, B (duas casas decimais)
 function formatNumber(value: number) {
@@ -12,8 +12,15 @@ function formatNumber(value: number) {
   return value.toFixed(2);
 }
 
+// Tipo dos dados de vendas
+type Venda = {
+  total: number;
+  mes?: number;
+  ano?: number;
+};
+
 // Tooltip customizado
-const CustomTooltip = ({ active, payload, label }: { active?: boolean, payload?: { value: number }[], label?: string }) => {
+const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
   if (active && payload && payload.length) {
     return (
       <div style={{
@@ -26,18 +33,11 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean, payload?:
       }}>
         <strong>{label}</strong>
         <br />
-        Total: <span style={{ color: '#82ca9d', fontWeight: 600 }}>{formatNumber(payload[0].value)}</span>
+        Total: <span style={{ color: '#82ca9d', fontWeight: 600 }}>{formatNumber(payload[0].value as number)}</span>
       </div>
     );
   }
   return null;
-};
-
-// Defina o tipo dos dados de vendas no topo do arquivo
-type Venda = {
-  total: number;
-  mes?: number;
-  ano?: number;
 };
 
 export default function Vendas() {
@@ -72,17 +72,10 @@ export default function Vendas() {
     'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
   ];
 
-  // Cálculo do valor máximo das barras para escala dinâmica
-  const maxAnual = !anoSelecionado
-    ? Math.max(...dados.map(item => item.total || 0), 0)
-    : 0;
-  const maxMensal = anoSelecionado
-    ? Math.max(...dados.map(item => item.total || 0), 0)
-    : 0;
+  const maxValor = Math.max(...dados.map(item => item.total || 0), 0);
 
   return (
     <main style={{ padding: '2rem', backgroundColor: '#111', color: '#fff', minHeight: '100vh' }}>
-      {/* Botão Home */}
       <button
         onClick={() => router.push('/dashboard')}
         style={{
@@ -104,8 +97,8 @@ export default function Vendas() {
         title="Voltar para o Dashboard"
       >
         <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
-          <path d="M3 12L12 4l9 8" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M5 10v10h14V10" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M3 12L12 4l9 8" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M5 10v10h14V10" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         Dashboard
       </button>
@@ -120,7 +113,6 @@ export default function Vendas() {
         gap: '1.5rem',
         marginBottom: '2rem'
       }}>
-        {/* Gráfico 1 - Com dados */}
         <div style={{
           background: 'linear-gradient(135deg, #232526 0%, #414345 100%)',
           borderRadius: 16,
@@ -130,7 +122,6 @@ export default function Vendas() {
           minWidth: 0,
           position: 'relative'
         }}>
-          {/* Seta para voltar (só aparece no mensal) */}
           {anoSelecionado && (
             <button
               onClick={() => router.push(`/vendas?organizacao=${organizacao}&empresa=${empresa}`)}
@@ -147,14 +138,15 @@ export default function Vendas() {
               title="Voltar para gráfico anual"
             >
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="12" fill="#222" opacity="0.7"/>
-                <path d="M15 7l-5 5 5 5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="12" cy="12" r="12" fill="#222" opacity="0.7" />
+                <path d="M15 7l-5 5 5 5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
           )}
+
           <ResponsiveContainer width="100%" height={280}>
             <BarChart
-              data={dados.map((item) => ({
+              data={dados.map(item => ({
                 ...item,
                 mes: item.mes ? meses[item.mes] : item.mes,
               }))}
@@ -167,40 +159,25 @@ export default function Vendas() {
               style={{ fontFamily: 'Inter, Arial, sans-serif' }}
             >
               <defs>
-                <linearGradient id="colorBarAnual" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.9}/>
-                  <stop offset="100%" stopColor="#1e3a8a" stopOpacity={0.8}/>
-                </linearGradient>
-                <linearGradient id="colorBarMensal" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#22c55e" stopOpacity={0.9}/>
-                  <stop offset="100%" stopColor="#166534" stopOpacity={0.8}/>
+                <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={anoSelecionado ? "#22c55e" : "#3b82f6"} stopOpacity={0.9} />
+                  <stop offset="100%" stopColor={anoSelecionado ? "#166534" : "#1e3a8a"} stopOpacity={0.8} />
                 </linearGradient>
               </defs>
+
               <CartesianGrid strokeDasharray="2 6" stroke="#333" />
               <XAxis dataKey={anoSelecionado ? 'mes' : 'ano'} stroke="#aaa" tick={{ fontSize: 13 }} />
               <YAxis
-                domain={[
-                  0,
-                  () => {
-                    if (anoSelecionado) {
-                      return maxMensal ? Math.ceil(maxMensal * 1.2) : 1;
-                    }
-                    return maxAnual ? Math.ceil(maxAnual * 1.2) : 1;
-                  }
-                ]}
+                domain={[0, maxValor ? Math.ceil(maxValor * 1.2) : 1]}
                 axisLine={false}
                 tickLine={false}
                 tick={false}
                 width={0}
               />
-              <Tooltip
-                content={<CustomTooltip />}
-                formatter={(value: number) => formatNumber(value)}
-              />
-              {/* Removido a legenda */}
+              <Tooltip content={<CustomTooltip />} formatter={(value: number) => formatNumber(value)} />
               <Bar
                 dataKey="total"
-                fill={anoSelecionado ? "url(#colorBarMensal)" : "url(#colorBarAnual)"}
+                fill="url(#colorBar)"
                 radius={[8, 8, 0, 0]}
                 barSize={40}
                 animationDuration={900}
@@ -222,50 +199,22 @@ export default function Vendas() {
           </ResponsiveContainer>
         </div>
 
-        {/* Gráfico 2 - Vazio */}
-        <div style={{
-          background: 'linear-gradient(135deg, #232526 0%, #414345 100%)',
-          borderRadius: 16,
-          boxShadow: '0 4px 24px #0004',
-          padding: '1.5rem',
-          minHeight: 336,
-          minWidth: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <span style={{ color: '#888', fontSize: 18 }}>Sem dados</span>
-        </div>
-
-        {/* Gráfico 3 - Vazio */}
-        <div style={{
-          background: 'linear-gradient(135deg, #232526 0%, #414345 100%)',
-          borderRadius: 16,
-          boxShadow: '0 4px 24px #0004',
-          padding: '1.5rem',
-          minHeight: 336,
-          minWidth: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <span style={{ color: '#888', fontSize: 18 }}>Sem dados</span>
-        </div>
-
-        {/* Gráfico 4 - Vazio */}
-        <div style={{
-          background: 'linear-gradient(135deg, #232526 0%, #414345 100%)',
-          borderRadius: 16,
-          boxShadow: '0 4px 24px #0004',
-          padding: '1.5rem',
-          minHeight: 336,
-          minWidth: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <span style={{ color: '#888', fontSize: 18 }}>Sem dados</span>
-        </div>
+        {/* Gráficos 2 a 4 - Vazio */}
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div key={index} style={{
+            background: 'linear-gradient(135deg, #232526 0%, #414345 100%)',
+            borderRadius: 16,
+            boxShadow: '0 4px 24px #0004',
+            padding: '1.5rem',
+            minHeight: 336,
+            minWidth: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <span style={{ color: '#888', fontSize: 18 }}>Sem dados</span>
+          </div>
+        ))}
       </div>
     </main>
   );
