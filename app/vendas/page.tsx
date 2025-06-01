@@ -13,7 +13,7 @@ function formatNumber(value: number) {
 }
 
 // Tooltip customizado
-const CustomTooltip = ({ active, payload, label }: { active?: boolean, payload?: any, label?: string }) => {
+const CustomTooltip = ({ active, payload, label }: { active?: boolean, payload?: { value: number }[], label?: string }) => {
   if (active && payload && payload.length) {
     return (
       <div style={{
@@ -33,7 +33,7 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean, payload?:
   return null;
 };
 
-// Defina um tipo para os dados de vendas
+// Defina o tipo dos dados de vendas no topo do arquivo
 type Venda = {
   total: number;
   mes?: number;
