@@ -176,13 +176,16 @@ export default function Dashboard() {
       <div style={{ height: 56 }} />
 
       {/* Conteúdo principal */}
-      <main style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center'
-      }}>
+      <main
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingTop: 56, // Adiciona espaço igual ao header fixo
+        }}
+      >
         <div
           style={{
             display: 'grid',
