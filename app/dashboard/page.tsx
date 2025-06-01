@@ -32,15 +32,18 @@ export default function Dashboard() {
       justifyContent: 'center',
       alignItems: 'center'
     }}>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '2rem',
-        justifyItems: 'center',
-        alignItems: 'center',
-        width: 520,
-        maxWidth: '90vw'
-      }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+          gap: '2rem',
+          justifyItems: 'center',
+          alignItems: 'center',
+          width: '100%',
+          maxWidth: 520,
+          padding: '0 1rem',
+        }}
+      >
         {botoes.map((botao) => {
           const Icon = botao.icone;
           return (
