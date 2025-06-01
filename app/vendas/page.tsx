@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { BarChart, Bar, XAxis, Tooltip, CartesianGrid, ResponsiveContainer, LabelList, YAxis } from 'recharts';
+import { Payload } from 'recharts/types/component/DefaultTooltipContent';
 
 function formatNumber(value: number) {
   if (value >= 1e9) return `${(value / 1e9).toFixed(2)}B`;
@@ -23,7 +24,7 @@ const CustomTooltip = ({
   label,
 }: {
   active?: boolean;
-  payload?: Array<{ value: number; payload: Venda }>;
+  payload?: Payload<any, string>[];
   label?: string;
 }) => {
   if (active && payload && payload.length) {
@@ -38,7 +39,7 @@ const CustomTooltip = ({
       }}>
         <strong>{label}</strong>
         <br />
-        Total: <span style={{ color: '#82ca9d', fontWeight: 600 }}>{formatNumber(payload[0].value)}</span>
+        Total: <span style={{ color: '#82ca9d', fontWeight: 600 }}>{formatNumber(payload[0].value as number)}</span>
       </div>
     );
   }
