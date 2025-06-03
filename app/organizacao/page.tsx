@@ -24,7 +24,7 @@ export default function OrganizacaoPage() {
   
   // Busca os dados ao abrir a página
   useEffect(() => {
-    fetch("http://192.168.1.254:3001/api/organizacao")
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/organizacao`)
       .then((res) => res.json())
       .then((data) => {
         setOrganizacoes(data);
@@ -44,7 +44,7 @@ export default function OrganizacaoPage() {
   // Salva alterações (PUT)
   async function handleSalvar() {
     if (!form.numero_organizacao || !form.nome_organizacao) return;
-    await fetch(`http://localhost:3001/api/organizacao/${form.numero_organizacao}`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/organizacao/${form.numero_organizacao}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -66,7 +66,7 @@ export default function OrganizacaoPage() {
   async function handleAdicionar(e: React.FormEvent) {
     e.preventDefault();
     if (!form.numero_organizacao || !form.nome_organizacao) return;
-    const res = await fetch("http://192.168.1.254:3001/api/organizacao", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/organizacao`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
@@ -82,7 +82,7 @@ export default function OrganizacaoPage() {
   // Remove organização (DELETE)
   async function handleRemover(numero: number) {
     if (!window.confirm("Deseja remover esta organização?")) return;
-    await fetch(`http://localhost:3001/api/organizacao/${numero}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/organizacao`, {
       method: "DELETE",
     });
     setOrganizacoes(organizacoes.filter((org) => org.numero_organizacao !== numero));
