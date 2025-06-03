@@ -21,7 +21,7 @@ export default function OrganizacaoPage() {
     nome_organizacao: "",
   });
   const [menuAberto, setMenuAberto] = useState(false);
-  
+
   // Busca os dados ao abrir a página
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/organizacao`)
@@ -82,7 +82,7 @@ export default function OrganizacaoPage() {
   // Remove organização (DELETE)
   async function handleRemover(numero: number) {
     if (!window.confirm("Deseja remover esta organização?")) return;
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/organizacao`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/organizacao/${numero}`, {
       method: "DELETE",
     });
     setOrganizacoes(organizacoes.filter((org) => org.numero_organizacao !== numero));
