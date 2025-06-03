@@ -24,13 +24,16 @@ export default function OrganizacaoPage() {
 
   // Busca os dados ao abrir a página
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/organizacao`)
-      .then((res) => res.json())
-      .then((data) => {
-        setOrganizacoes(data);
-        setLoading(false);
-      });
-  }, []);
+  // Teste: veja se a variável está correta
+  console.log("API_URL:", process.env.NEXT_PUBLIC_API_URL);
+
+  fetch(`${process.env.NEXT_PUBLIC_API_URL}/organizacao`)
+    .then((res) => res.json())
+    .then((data) => {
+      setOrganizacoes(data);
+      setLoading(false);
+    });
+}, []);
 
   // Ao clicar em editar, carrega os dados no formulário
   function handleEditar(org: Organizacao) {

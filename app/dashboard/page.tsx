@@ -63,13 +63,12 @@ export default function Dashboard() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            columnGap: '3rem', // aumenta o espaço horizontal
-            rowGap: '2rem',    // espaço vertical entre as linhas
+            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', // responsivo!
+            gap: '2rem',
             justifyItems: 'center',
             alignItems: 'center',
             width: '100%',
-            maxWidth: 700,     // aumente se quiser mais espaço total
+            maxWidth: 700,
             padding: '0 1rem',
           }}
         >
