@@ -23,7 +23,7 @@ export default function OrganizacaoPage() {
     nome_organizacao: "",
   });
   const [menuAberto, setMenuAberto] = useState(false);
-  const router = useRouter();
+  //const router = useRouter();
 
   // Busca os dados ao abrir a página
   useEffect(() => {
