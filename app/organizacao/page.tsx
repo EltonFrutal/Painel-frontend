@@ -23,8 +23,7 @@ export default function OrganizacaoPage() {
     nome_organizacao: "",
   });
   const [menuAberto, setMenuAberto] = useState(false);
-  //const router = useRouter();
-
+  
   // Busca os dados ao abrir a página
   useEffect(() => {
     fetch("http://192.168.1.254:3001/api/organizacao")

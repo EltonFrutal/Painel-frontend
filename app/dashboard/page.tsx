@@ -40,8 +40,7 @@ const botoes = [
 export default function Dashboard() {
   const [menuAberto, setMenuAberto] = useState(false);
   const usuario = 'Elton';
-  //const router = useRouter();
-
+  
   return (
     <div style={{
       minHeight: '100vh',
