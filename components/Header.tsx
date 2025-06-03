@@ -49,12 +49,13 @@ export default function Header({ usuario, onMenuClick }: { usuario: string, onMe
           <Home size={26} />
         </button>
         <span
+          className="hidden sm:inline"
           style={{
             color: '#fff',
             fontWeight: 400,
             fontSize: 20,
             letterSpacing: 1,
-            marginLeft: 40 // 1cm ≈ 37.8px, arredondado para 40px para garantir o espaço
+            marginLeft: 40,
           }}
         >
           Painel Gerencial
