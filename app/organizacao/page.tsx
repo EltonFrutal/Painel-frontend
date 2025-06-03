@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { User, LogOut, Menu, BarChart2, Building, Home } from "lucide-react";
-import { useRouter } from "next/navigation";
 import Header from '../../components/Header';
 import MenuLateral from '../../components/MenuLateral';
 
