@@ -40,7 +40,7 @@ export default function Home() {
       }
 
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/usuarios/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -53,7 +53,7 @@ export default function Home() {
         const data = await res.json();
 
         if (!res.ok) {
-          setMensagem(data.error || 'Erro ao fazer login.');
+          setMensagem(data.erro || 'Usuário ou senha inválidos.');
         } else {
           localStorage.setItem('usuario', JSON.stringify(data.user));
           router.push('/dashboard');
@@ -70,10 +70,7 @@ export default function Home() {
     }
   }
 
-  function renderInput(
-    icon: ReactNode,
-    props: InputHTMLAttributes<HTMLInputElement>
-  ) {
+  function renderInput(icon: ReactNode, props: InputHTMLAttributes<HTMLInputElement>) {
     return (
       <div style={{ position: 'relative', width: '100%', marginBottom: 2 }}>
         <span
@@ -171,7 +168,6 @@ export default function Home() {
           </svg>
         </div>
 
-        {/* Abas */}
         <div style={{ display: 'flex', width: '100%', marginBottom: 8 }}>
           <button
             type="button"
@@ -217,7 +213,6 @@ export default function Home() {
           Login {aba === 'usuario' ? 'de Usuário' : 'de Assessor'}
         </h1>
 
-        {/* ORGANIZAÇÃO */}
         <div style={{ position: 'relative', width: '100%', marginBottom: 2 }}>
           <span
             style={{
@@ -257,7 +252,6 @@ export default function Home() {
           </select>
         </div>
 
-        {/* USUÁRIO E SENHA */}
         {form.organizacao && (
           <>
             {renderInput(<User size={18} />, {
