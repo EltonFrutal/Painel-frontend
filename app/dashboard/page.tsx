@@ -14,6 +14,7 @@ import {
   Gauge
 } from "lucide-react";
 
+// Mapeamento dos ícones
 const icones: Record<string, React.ElementType> = {
   ShoppingCart,
   DollarSign,
@@ -25,6 +26,7 @@ const icones: Record<string, React.ElementType> = {
   Gauge
 };
 
+// Botões principais
 const botoes = [
   { titulo: 'Vendas',        cor: '#2563eb', icone: 'ShoppingCart' },
   { titulo: 'A Receber',     cor: '#22c55e', icone: 'DollarSign' },
@@ -39,7 +41,7 @@ const botoes = [
 export default function Dashboard() {
   const [menuAberto, setMenuAberto] = useState(false);
   const usuario = 'Elton';
-  
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -50,52 +52,48 @@ export default function Dashboard() {
       <Header usuario={usuario} onMenuClick={() => setMenuAberto(true)} />
       <MenuLateral aberto={menuAberto} usuario={usuario} onClose={() => setMenuAberto(false)} />
       <div style={{ height: 56 }} />
-      <main
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'flex-start',
-          alignItems: 'center',
-          paddingTop: 80, // aumente aqui para descer as fileiras
-        }}
-      >
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', // responsivo!
-            gap: '2rem',
-            justifyItems: 'center',
-            alignItems: 'center',
-            width: '100%',
-            maxWidth: 700,
-            padding: '0 1rem',
-          }}
-        >
-          {botoes.map((botao) => {
-            const Icon = icones[botao.icone];
+
+      <main style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        paddingTop: 80,
+      }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+          gap: '2rem',
+          justifyItems: 'center',
+          width: '100%',
+          maxWidth: 700,
+          padding: '0 1rem',
+        }}>
+          {botoes.map(({ titulo, cor, icone }) => {
+            const Icon = icones[icone];
             return (
-              <div key={botao.titulo} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div key={titulo} style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center'
+              }}>
                 <button
                   style={{
                     width: 96,
                     height: 96,
-                    background: botao.cor,
+                    background: cor,
                     border: 'none',
                     borderRadius: 16,
-                    boxShadow: `0 2px 12px ${botao.cor}55`,
+                    boxShadow: `0 2px 12px ${cor}55`,
                     display: 'flex',
-                    flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 8,
                     cursor: 'pointer',
                     transition: 'transform 0.15s, box-shadow 0.15s',
-                    fontSize: 15
                   }}
-                  onClick={() => alert(`Você clicou em ${botao.titulo}`)}
-                  onMouseOver={e => (e.currentTarget.style.transform = 'scale(1.07)')}
-                  onMouseOut={e => (e.currentTarget.style.transform = 'scale(1)')}
+                  onClick={() => alert(`Você clicou em ${titulo}`)}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.07)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                 >
                   <Icon size={36} color="#fff" strokeWidth={2.5} />
                 </button>
@@ -106,7 +104,7 @@ export default function Dashboard() {
                   fontSize: 15,
                   textAlign: 'center'
                 }}>
-                  {botao.titulo}
+                  {titulo}
                 </span>
               </div>
             );

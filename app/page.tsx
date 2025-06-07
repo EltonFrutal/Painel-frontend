@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, InputHTMLAttributes, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { User, Building2, Lock, Eye, EyeOff } from 'lucide-react';
 
@@ -34,7 +34,6 @@ export default function Home() {
 
     if (aba === 'usuario') {
       const orgSelecionada = organizacoes.find(o => o.nome_organizacao === form.organizacao);
-
       if (!orgSelecionada) {
         setMensagem('Organização inválida.');
         return;
@@ -47,8 +46,8 @@ export default function Home() {
           body: JSON.stringify({
             nome: form.usuario,
             senha: form.senha,
-            id_organizacao: orgSelecionada.id_organizacao
-          })
+            id_organizacao: orgSelecionada.id_organizacao,
+          }),
         });
 
         const data = await res.json();
@@ -59,7 +58,7 @@ export default function Home() {
           localStorage.setItem('usuario', JSON.stringify(data.user));
           router.push('/dashboard');
         }
-      } catch (err) {
+      } catch {
         setMensagem('Erro ao conectar com o servidor.');
       }
     } else {
@@ -71,17 +70,22 @@ export default function Home() {
     }
   }
 
-  function renderInput(icon: React.ReactNode, props: any) {
+  function renderInput(
+    icon: ReactNode,
+    props: InputHTMLAttributes<HTMLInputElement>
+  ) {
     return (
       <div style={{ position: 'relative', width: '100%', marginBottom: 2 }}>
-        <span style={{
-          position: 'absolute',
-          left: 12,
-          top: '50%',
-          transform: 'translateY(-50%)',
-          color: '#2563eb',
-          pointerEvents: 'none'
-        }}>
+        <span
+          style={{
+            position: 'absolute',
+            left: 12,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: '#2563eb',
+            pointerEvents: 'none',
+          }}
+        >
           {icon}
         </span>
         <input
@@ -95,7 +99,7 @@ export default function Home() {
             outline: 'none',
             background: '#f3f4f6',
             color: '#222',
-            ...props.style
+            ...props.style,
           }}
         />
         {props.type === 'password' && (
@@ -112,7 +116,7 @@ export default function Home() {
               border: 'none',
               cursor: 'pointer',
               color: '#2563eb',
-              padding: 0
+              padding: 0,
             }}
           >
             {mostrarSenha ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -123,13 +127,15 @@ export default function Home() {
   }
 
   return (
-    <main style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #60a5fa 0%, #a7f3d0 100%)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center'
-    }}>
+    <main
+      style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #60a5fa 0%, #a7f3d0 100%)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
       <form
         onSubmit={handleLogin}
         style={{
@@ -141,31 +147,38 @@ export default function Home() {
           display: 'flex',
           flexDirection: 'column',
           gap: '1rem',
-          alignItems: 'center'
+          alignItems: 'center',
         }}
       >
-        <div style={{
-          background: 'linear-gradient(135deg, #2563eb 0%, #22d3ee 100%)',
-          borderRadius: '50%',
-          width: 56,
-          height: 56,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: 6
-        }}>
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #2563eb 0%, #22d3ee 100%)',
+            borderRadius: '50%',
+            width: 56,
+            height: 56,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 6,
+          }}
+        >
           <svg width="32" height="32" fill="none" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="12" fill="#fff" opacity="0.2" />
-            <path d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-4 0-7 2-7 4v2h14v-2c0-2-3-4-7-4z" fill="#2563eb" />
+            <path
+              d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-4 0-7 2-7 4v2h14v-2c0-2-3-4-7-4z"
+              fill="#2563eb"
+            />
           </svg>
         </div>
 
-        {/* Botões das abas */}
+        {/* Abas */}
         <div style={{ display: 'flex', width: '100%', marginBottom: 8 }}>
-          <button type="button" onClick={() => {
-            setAba('usuario');
-            setForm({ usuario: '', organizacao: '', senha: '' });
-          }}
+          <button
+            type="button"
+            onClick={() => {
+              setAba('usuario');
+              setForm({ usuario: '', organizacao: '', senha: '' });
+            }}
             style={{
               flex: 1,
               padding: '0.5rem 0',
@@ -174,15 +187,17 @@ export default function Home() {
               color: aba === 'usuario' ? '#fff' : '#222',
               fontWeight: 600,
               borderRadius: '8px 0 0 8px',
-              cursor: 'pointer'
+              cursor: 'pointer',
             }}
           >
             Usuário
           </button>
-          <button type="button" onClick={() => {
-            setAba('assessor');
-            setForm({ usuario: '', organizacao: '', senha: '' });
-          }}
+          <button
+            type="button"
+            onClick={() => {
+              setAba('assessor');
+              setForm({ usuario: '', organizacao: '', senha: '' });
+            }}
             style={{
               flex: 1,
               padding: '0.5rem 0',
@@ -191,7 +206,7 @@ export default function Home() {
               color: aba === 'assessor' ? '#fff' : '#222',
               fontWeight: 600,
               borderRadius: '0 8px 8px 0',
-              cursor: 'pointer'
+              cursor: 'pointer',
             }}
           >
             Assessor
@@ -202,16 +217,18 @@ export default function Home() {
           Login {aba === 'usuario' ? 'de Usuário' : 'de Assessor'}
         </h1>
 
-        {/* CAMPO DE ORGANIZAÇÃO PRIMEIRO */}
+        {/* ORGANIZAÇÃO */}
         <div style={{ position: 'relative', width: '100%', marginBottom: 2 }}>
-          <span style={{
-            position: 'absolute',
-            left: 12,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: '#2563eb',
-            pointerEvents: 'none'
-          }}>
+          <span
+            style={{
+              position: 'absolute',
+              left: 12,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: '#2563eb',
+              pointerEvents: 'none',
+            }}
+          >
             <Building2 size={18} />
           </span>
           <select
@@ -228,7 +245,7 @@ export default function Home() {
               outline: 'none',
               background: '#f3f4f6',
               color: '#222',
-              appearance: 'none'
+              appearance: 'none',
             }}
           >
             <option value="">Selecione a organização</option>
@@ -240,7 +257,7 @@ export default function Home() {
           </select>
         </div>
 
-        {/* APÓS ORGANIZAÇÃO, MOSTRAR USUÁRIO E SENHA */}
+        {/* USUÁRIO E SENHA */}
         {form.organizacao && (
           <>
             {renderInput(<User size={18} />, {
@@ -249,7 +266,7 @@ export default function Home() {
               value: form.usuario,
               onChange: handleChange,
               required: true,
-              placeholder: 'Usuário'
+              placeholder: 'Usuário',
             })}
 
             {renderInput(<Lock size={18} />, {
@@ -258,7 +275,7 @@ export default function Home() {
               value: form.senha,
               onChange: handleChange,
               required: true,
-              placeholder: 'Senha'
+              placeholder: 'Senha',
             })}
           </>
         )}
@@ -267,7 +284,8 @@ export default function Home() {
           <div style={{ fontSize: 14, color: 'red', marginTop: -8 }}>{mensagem}</div>
         )}
 
-        <button type="submit"
+        <button
+          type="submit"
           style={{
             width: '100%',
             padding: '0.6rem',
@@ -278,14 +296,12 @@ export default function Home() {
             fontWeight: 600,
             fontSize: 16,
             cursor: 'pointer',
-            boxShadow: '0 2px 8px #2563eb33'
-          }}>
+            boxShadow: '0 2px 8px #2563eb33',
+          }}
+        >
           Entrar
         </button>
       </form>
     </main>
   );
 }
-
-
-"// force deploy" 
