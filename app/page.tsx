@@ -40,7 +40,7 @@ export default function Home() {
       }
 
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/usuarios/login`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -55,7 +55,9 @@ export default function Home() {
         if (!res.ok) {
           setMensagem(data.erro || 'Usuário ou senha inválidos.');
         } else {
-          localStorage.setItem('usuario', JSON.stringify(data.user));
+          localStorage.setItem('usuario', data.user.nome);
+          localStorage.setItem('organizacao', orgSelecionada.nome_organizacao);
+          localStorage.setItem('id_organizacao', String(orgSelecionada.id_organizacao));
           router.push('/dashboard');
         }
       } catch {

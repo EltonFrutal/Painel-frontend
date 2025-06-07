@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Header from '../../components/Header';
 import MenuLateral from '../../components/MenuLateral';
 import {
@@ -14,7 +14,6 @@ import {
   Gauge
 } from "lucide-react";
 
-// Mapeamento dos ícones
 const icones: Record<string, React.ElementType> = {
   ShoppingCart,
   DollarSign,
@@ -26,21 +25,35 @@ const icones: Record<string, React.ElementType> = {
   Gauge
 };
 
-// Botões principais
 const botoes = [
-  { titulo: 'Vendas',        cor: '#2563eb', icone: 'ShoppingCart' },
-  { titulo: 'A Receber',     cor: '#22c55e', icone: 'DollarSign' },
-  { titulo: 'A Pagar',       cor: '#ef4444', icone: 'CreditCard' },
-  { titulo: 'Históricos',    cor: '#a21caf', icone: 'History' },
-  { titulo: 'Estoque',       cor: '#0ea5e9', icone: 'Box' },
-  { titulo: 'Compras',       cor: '#f59e42', icone: 'ShoppingBag' },
-  { titulo: 'Resultados',    cor: '#16a34a', icone: 'BarChart2' },
-  { titulo: 'Indicadores',   cor: '#fbbf24', icone: 'Gauge' },
+  { titulo: 'Vendas', cor: '#2563eb', icone: 'ShoppingCart' },
+  { titulo: 'A Receber', cor: '#22c55e', icone: 'DollarSign' },
+  { titulo: 'A Pagar', cor: '#ef4444', icone: 'CreditCard' },
+  { titulo: 'Históricos', cor: '#a21caf', icone: 'History' },
+  { titulo: 'Estoque', cor: '#0ea5e9', icone: 'Box' },
+  { titulo: 'Compras', cor: '#f59e42', icone: 'ShoppingBag' },
+  { titulo: 'Resultados', cor: '#16a34a', icone: 'BarChart2' },
+  { titulo: 'Indicadores', cor: '#fbbf24', icone: 'Gauge' },
 ];
 
 export default function Dashboard() {
   const [menuAberto, setMenuAberto] = useState(false);
-  const usuario = 'Elton';
+  const [usuario, setUsuario] = useState<string | null>(null);
+  const [organizacao, setOrganizacao] = useState<string | null>(null);
+  const [carregando, setCarregando] = useState(true);
+
+  useEffect(() => {
+    // Aguarda a leitura segura do localStorage
+    const user = localStorage.getItem('usuario');
+    const org = localStorage.getItem('organizacao');
+    setUsuario(user);
+    setOrganizacao(org);
+    setCarregando(false);
+  }, []);
+
+  if (carregando) {
+    return <div style={{ padding: 40, textAlign: 'center' }}>Carregando dashboard...</div>;
+  }
 
   return (
     <div style={{
@@ -49,8 +62,16 @@ export default function Dashboard() {
       flexDirection: 'column',
       background: 'linear-gradient(135deg, #f3f4f6 0%, #dbeafe 100%)'
     }}>
-      <Header usuario={usuario} onMenuClick={() => setMenuAberto(true)} />
-      <MenuLateral aberto={menuAberto} usuario={usuario} onClose={() => setMenuAberto(false)} />
+      <Header
+        usuario={usuario || ''}
+        organizacao={organizacao || ''}
+        onMenuClick={() => setMenuAberto(true)}
+      />
+      <MenuLateral
+        aberto={menuAberto}
+        usuario={usuario || ''}
+        onClose={() => setMenuAberto(false)}
+      />
       <div style={{ height: 56 }} />
 
       <main style={{
