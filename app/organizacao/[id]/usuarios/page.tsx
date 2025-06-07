@@ -182,7 +182,11 @@ export default function UsuariosPage() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              editando !== null ? handleSalvar() : handleAdicionar(e);
+              if (editando !== null) {
+                handleSalvar();
+              } else {
+                handleAdicionar(e);
+              }
             }}
             style={{
               display: "flex",

@@ -166,7 +166,11 @@ export default function OrganizacaoPage() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              editando !== null ? handleSalvar() : handleAdicionar(e);
+              if (editando !== null) {
+                handleSalvar();
+              } else {
+                handleAdicionar(e);
+              }
             }}
             style={{
               display: "flex",
