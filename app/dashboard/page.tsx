@@ -52,6 +52,14 @@ export default function Dashboard() {
     setCarregando(false);
   }, []);
 
+  const handleClick = (titulo: string) => {
+    if (titulo === 'Vendas') {
+      router.push('/dashboard/vendas');
+    } else {
+      alert(`Você clicou em ${titulo}`);
+    }
+  };
+
   if (carregando) {
     return <div style={{ padding: 40, textAlign: 'center' }}>Carregando dashboard...</div>;
   }
@@ -93,14 +101,6 @@ export default function Dashboard() {
         }}>
           {botoes.map(({ titulo, cor, icone }) => {
             const Icon = icones[icone];
-            const handleClick = () => {
-              if (titulo === 'Vendas') {
-                router.push('/dashboard/vendas');
-              } else {
-                alert(`Você clicou em ${titulo}`);
-              }
-            };
-
             return (
               <div key={titulo} style={{
                 display: 'flex',
@@ -121,7 +121,7 @@ export default function Dashboard() {
                     cursor: 'pointer',
                     transition: 'transform 0.15s, box-shadow 0.15s',
                   }}
-                  onClick={handleClick}
+                  onClick={() => handleClick(titulo)}
                   onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.07)'}
                   onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                 >
