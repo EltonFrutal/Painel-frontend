@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Header from '../../components/Header';
 import MenuLateral from '../../components/MenuLateral';
 import {
@@ -37,13 +38,13 @@ const botoes = [
 ];
 
 export default function Dashboard() {
+  const router = useRouter();
   const [menuAberto, setMenuAberto] = useState(false);
   const [usuario, setUsuario] = useState<string | null>(null);
   const [organizacao, setOrganizacao] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    // Aguarda a leitura segura do localStorage
     const user = localStorage.getItem('usuario');
     const org = localStorage.getItem('organizacao');
     setUsuario(user);
@@ -92,6 +93,14 @@ export default function Dashboard() {
         }}>
           {botoes.map(({ titulo, cor, icone }) => {
             const Icon = icones[icone];
+            const handleClick = () => {
+              if (titulo === 'Vendas') {
+                router.push('/dashboard/vendas');
+              } else {
+                alert(`Você clicou em ${titulo}`);
+              }
+            };
+
             return (
               <div key={titulo} style={{
                 display: 'flex',
@@ -112,7 +121,7 @@ export default function Dashboard() {
                     cursor: 'pointer',
                     transition: 'transform 0.15s, box-shadow 0.15s',
                   }}
-                  onClick={() => alert(`Você clicou em ${titulo}`)}
+                  onClick={handleClick}
                   onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.07)'}
                   onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                 >
