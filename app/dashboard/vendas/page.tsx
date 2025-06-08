@@ -11,24 +11,35 @@ import {
   Legend,
   LabelList,
 } from "recharts";
-import { useEffect, useState, MouseEvent } from "react";
+import { useEffect, useState } from "react";
 import { Select } from "../../../components/ui/select";
 import { Label } from "../../../components/ui/label";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const id_organizacao = 1111;
 
+interface DadoAno {
+  ano: number;
+  total_venda: number;
+}
+interface DadoMes {
+  mes: number;
+  total_venda: number;
+}
+interface DadoDia {
+  dia: number;
+  total_venda: number;
+}
+
+type Dado = DadoAno | DadoMes | DadoDia;
+
 export default function VendasPage() {
   const [nivel, setNivel] = useState<"ano" | "mes" | "dia">("ano");
   const [anoSelecionado, setAnoSelecionado] = useState<number | null>(null);
   const [mesSelecionado, setMesSelecionado] = useState<number | null>(null);
-  const [dados, setDados] = useState<any[]>([]);
+  const [dados, setDados] = useState<Dado[]>([]);
   const [tipo, setTipo] = useState("");
   const [empresa, setEmpresa] = useState("");
-
-  useEffect(() => {
-    buscarDados();
-  }, [nivel, anoSelecionado, mesSelecionado, tipo, empresa]);
 
   const buscarDados = async () => {
     let url = `${API_URL}/vendas/${nivel}?id_organizacao=${id_organizacao}`;
@@ -46,6 +57,11 @@ export default function VendasPage() {
     }
   };
 
+  useEffect(() => {
+    buscarDados();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nivel, anoSelecionado, mesSelecionado, tipo, empresa]);
+
   const voltarNivel = () => {
     if (nivel === "dia") {
       setNivel("mes");
@@ -56,11 +72,11 @@ export default function VendasPage() {
     }
   };
 
-  const handleBarClick = (entry: any) => {
-    if (nivel === "ano") {
+  const handleBarClick = (entry: Dado) => {
+    if ("ano" in entry) {
       setAnoSelecionado(entry.ano);
       setNivel("mes");
-    } else if (nivel === "mes") {
+    } else if ("mes" in entry) {
       setMesSelecionado(entry.mes);
       setNivel("dia");
     }
@@ -84,16 +100,16 @@ export default function VendasPage() {
 
       <div className="flex gap-4 mb-6">
         <div>
-          <Label htmlFor="tipo">Tipo</Label>
-          <Select id="tipo" value={tipo} onChange={(e: any) => setTipo(e.target.value)}>
+          <Label>Tipo</Label>
+          <Select value={tipo} onChange={(e) => setTipo((e.target as HTMLSelectElement).value)}>
             <option value="">Todos</option>
             <option value="Venda">Venda</option>
             <option value="Servico">Serviço</option>
           </Select>
         </div>
         <div>
-          <Label htmlFor="empresa">Empresa</Label>
-          <Select id="empresa" value={empresa} onChange={(e: any) => setEmpresa(e.target.value)}>
+          <Label>Empresa</Label>
+          <Select value={empresa} onChange={(e) => setEmpresa((e.target as HTMLSelectElement).value)}>
             <option value="">Todas</option>
             <option value="Matriz">Matriz</option>
             <option value="Filial">Filial</option>
@@ -110,35 +126,33 @@ export default function VendasPage() {
       </div>
 
       <ResponsiveContainer width="100%" height={400}>
-        <BarChart
-          data={dados}
-          onClick={(e: any) => {
-            const index = e?.activeTooltipIndex;
-            if (index !== undefined && dados[index]) {
-              handleBarClick(dados[index]);
-            }
-          }}
-        >
+        <BarChart data={dados}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey={getLabelX()} />
           <YAxis />
           <Tooltip
-            formatter={(v: any) =>
-              Number(v).toLocaleString("pt-BR", {
+            formatter={(v: number) =>
+              v.toLocaleString("pt-BR", {
                 style: "currency",
                 currency: "BRL",
               })
             }
           />
           <Legend />
-          <Bar dataKey="total_venda" fill="#2563eb" radius={[4, 4, 0, 0]}>
+          <Bar
+            dataKey="total_venda"
+            fill="#2563eb"
+            radius={[4, 4, 0, 0]}
+            onClick={(_, index) => {
+              const item = dados[index];
+              if (item) handleBarClick(item);
+            }}
+          >
             <LabelList
               dataKey="total_venda"
               position="top"
-              formatter={(v: any) =>
-                Number(v).toLocaleString("pt-BR", {
-                  notation: "compact",
-                })
+              formatter={(v: number) =>
+                v.toLocaleString("pt-BR", { notation: "compact" })
               }
             />
           </Bar>
