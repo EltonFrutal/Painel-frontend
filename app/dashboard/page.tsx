@@ -13,7 +13,7 @@ import {
   ShoppingBag,
   BarChart2,
   Gauge
-} from "lucide-react";
+} from 'lucide-react';
 
 const icones: Record<string, React.ElementType> = {
   ShoppingCart,
@@ -34,7 +34,7 @@ const botoes = [
   { titulo: 'Estoque', cor: '#0ea5e9', icone: 'Box' },
   { titulo: 'Compras', cor: '#f59e42', icone: 'ShoppingBag' },
   { titulo: 'Resultados', cor: '#16a34a', icone: 'BarChart2' },
-  { titulo: 'Indicadores', cor: '#fbbf24', icone: 'Gauge' },
+  { titulo: 'Indicadores', cor: '#fbbf24', icone: 'Gauge' }
 ];
 
 export default function Dashboard() {
@@ -88,7 +88,7 @@ export default function Dashboard() {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        paddingTop: 80,
+        paddingTop: 80
       }}>
         <div style={{
           display: 'grid',
@@ -97,7 +97,7 @@ export default function Dashboard() {
           justifyItems: 'center',
           width: '100%',
           maxWidth: 700,
-          padding: '0 1rem',
+          padding: '0 1rem'
         }}>
           {botoes.map(({ titulo, cor, icone }) => {
             const Icon = icones[icone];
@@ -119,7 +119,7 @@ export default function Dashboard() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    transition: 'transform 0.15s, box-shadow 0.15s',
+                    transition: 'transform 0.15s, box-shadow 0.15s'
                   }}
                   onClick={() => handleClick(titulo)}
                   onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.07)'}
