@@ -1,4 +1,3 @@
-// app/dashboard/vendas/page.tsx
 'use client';
 
 import {
@@ -6,18 +5,17 @@ import {
   BarChart,
   XAxis,
   YAxis,
-  Tooltip,
   Bar,
   LabelList
 } from "recharts";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Header from "../../../components/Header";
 import MenuLateral from "../../../components/MenuLateral";
 import { Select } from "../../../components/ui/select";
 import { Label } from "../../../components/ui/label";
+import { ArrowLeft, Calendar } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const id_organizacao = 1111;
 
 interface DadoAno {
   ano: number;
@@ -33,6 +31,15 @@ interface DadoDia {
 }
 type Dado = DadoAno | DadoMes | DadoDia;
 
+function adicionarVariacaoAbsoluta(dados: DadoAno[]) {
+  return dados.map((item, idx, arr) => {
+    if (idx === 0) return { ...item, variacao: null };
+    const anterior = arr[idx - 1].total_venda || 0;
+    const variacao = item.total_venda - anterior;
+    return { ...item, variacao };
+  });
+}
+
 export default function VendasPage() {
   const [nivel, setNivel] = useState<'ano' | 'mes' | 'dia'>('ano');
   const [anoSelecionado, setAnoSelecionado] = useState<number | null>(null);
@@ -41,9 +48,24 @@ export default function VendasPage() {
   const [tipo, setTipo] = useState("");
   const [empresa, setEmpresa] = useState("");
   const [menuAberto, setMenuAberto] = useState(false);
-  const [usuario] = useState("Elton");
+  const [usuario, setUsuario] = useState("");
+  const [organizacaoNome, setOrganizacaoNome] = useState("");
+  const [escala, setEscala] = useState<"K" | "M" | "B" | "">("");
+  const [anosExibidos, setAnosExibidos] = useState<5 | 10 | 0>(5); // 0 = todos
+  const [showAnosDropdown, setShowAnosDropdown] = useState(false);
+  const anosDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const nome_usuario = localStorage.getItem("usuario") || "";
+    const nome_organizacao = localStorage.getItem("organizacao") || "";
+    setUsuario(nome_usuario);
+    setOrganizacaoNome(nome_organizacao);
+  }, []);
+
+  useEffect(() => {
+    const id_organizacao = Number(localStorage.getItem("id_organizacao"));
+    if (!id_organizacao) return;
+
     const buscarDados = async () => {
       let url = `${API_URL}/vendas/${nivel}?id_organizacao=${id_organizacao}`;
       if (anoSelecionado) url += `&ano=${anoSelecionado}`;
@@ -53,7 +75,16 @@ export default function VendasPage() {
 
       try {
         const response = await fetch(url);
-        const json = await response.json();
+        let json = await response.json();
+
+        // Filtro dos anos exibidos apenas para o gráfico anual
+        if (nivel === "ano" && anosExibidos !== 0) {
+          json = json
+            .sort((a: DadoAno, b: DadoAno) => b.ano - a.ano)
+            .slice(0, anosExibidos)
+            .sort((a: DadoAno, b: DadoAno) => a.ano - b.ano); // volta para ordem crescente
+        }
+
         setDados(json);
       } catch (err) {
         console.error('Erro ao buscar dados:', err);
@@ -61,7 +92,39 @@ export default function VendasPage() {
     };
 
     buscarDados();
-  }, [nivel, anoSelecionado, mesSelecionado, tipo, empresa]);
+  }, [nivel, anoSelecionado, mesSelecionado, tipo, empresa, anosExibidos]);
+
+  useEffect(() => {
+    if ((nivel === "ano" || nivel === "mes" || nivel === "dia") && dados.length > 0) {
+      const max = Math.max(...dados.map(d => d.total_venda || 0));
+      if (max >= 1e9) setEscala("B");
+      else if (max >= 1e6) setEscala("M");
+      else if (max >= 1e3) setEscala("K");
+      else setEscala("");
+    } else {
+      setEscala("");
+    }
+  }, [nivel, dados]);
+
+  // Fecha o dropdown ao clicar fora
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        anosDropdownRef.current &&
+        !anosDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowAnosDropdown(false);
+      }
+    }
+    if (showAnosDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showAnosDropdown]);
 
   const voltarNivel = () => {
     if (nivel === 'dia') {
@@ -87,15 +150,18 @@ export default function VendasPage() {
   };
 
   const getTitulo = () => {
-    if (nivel === 'ano') return 'Vendas por Ano';
-    if (nivel === 'mes') return `Vendas por Mês (${anoSelecionado})`;
-    return `Vendas por Dia (${mesSelecionado}/${anoSelecionado})`;
+    if (nivel === 'ano') return 'por Ano';
+    if (nivel === 'mes') return `Mensal - Ano ${anoSelecionado}`;
+    return `por Dia (${mesSelecionado}/${anoSelecionado})`;
   };
 
   const formatNumber = (n: number) => {
-    if (n >= 1e9) return (n / 1e9).toFixed(1).replace('.0', '') + 'B';
-    if (n >= 1e6) return (n / 1e6).toFixed(1).replace('.0', '') + 'M';
-    if (n >= 1e3) return (n / 1e3).toFixed(1).replace('.0', '') + 'K';
+    if (nivel === "ano" || nivel === "mes" || nivel === "dia") {
+      if (escala === "B") return (n / 1e9).toLocaleString("pt-BR", { minimumFractionDigits: n < 10e9 ? 2 : n < 100e9 ? 1 : 0, maximumFractionDigits: n < 10e9 ? 2 : n < 100e9 ? 1 : 0 });
+      if (escala === "M") return (n / 1e6).toLocaleString("pt-BR", { minimumFractionDigits: n < 10e6 ? 2 : n < 100e6 ? 1 : 0, maximumFractionDigits: n < 10e6 ? 2 : n < 100e6 ? 1 : 0 });
+      if (escala === "K") return (n / 1e3).toLocaleString("pt-BR", { minimumFractionDigits: n < 10e3 ? 2 : n < 100e3 ? 1 : 0, maximumFractionDigits: n < 10e3 ? 2 : n < 100e3 ? 1 : 0 });
+      return n.toLocaleString("pt-BR");
+    }
     return n.toLocaleString("pt-BR");
   };
 
@@ -103,87 +169,269 @@ export default function VendasPage() {
   const yMax = Math.ceil(maxValue * 1.1);
   const maxBarSize = nivel === 'mes' ? 80 : nivel === 'ano' ? 60 : 10;
 
+  const dadosComVariacao = nivel === "ano" ? adicionarVariacaoAbsoluta(dados as DadoAno[]) : dados;
+
   return (
     <div style={{ minHeight: "100vh", background: "#f8fafc" }}>
-      <Header usuario={usuario} organizacao="SafetyCar" onMenuClick={() => setMenuAberto(true)} />
+      <Header usuario={usuario} organizacao={organizacaoNome} onMenuClick={() => setMenuAberto(true)} />
       <MenuLateral aberto={menuAberto} usuario={usuario} onClose={() => setMenuAberto(false)} />
       <div style={{ height: 56 }} />
       <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4 text-blue-600">{getTitulo()}</h1>
-        <div className="flex gap-4 mb-6">
-          <div>
-            <Label>Tipo</Label>
-            <Select value={tipo} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTipo(e.target.value)}>
-              <option value="">Todos</option>
-              <option value="Venda">Venda</option>
-              <option value="Servico">Serviço</option>
-            </Select>
-          </div>
-          <div>
-            <Label>Empresa</Label>
-            <Select value={empresa} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setEmpresa(e.target.value)}>
-              <option value="">Todas</option>
-              <option value="Matriz">Matriz</option>
-              <option value="Filial">Filial</option>
-            </Select>
-          </div>
-        </div>
-
-        <div style={{
-          background: "#fff",
-          borderRadius: 16,
-          boxShadow: "0 4px 24px #0001",
-          padding: 24,
-          minHeight: 340
-        }}>
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart
-              data={dados}
-              onClick={({ activeTooltipIndex }) => {
-                if (activeTooltipIndex != null) {
-                  handleBarClick(dados[activeTooltipIndex]);
-                }
-              }}
-              barCategoryGap={nivel === "dia" ? 2 : nivel === "mes" ? 10 : 30}
-            >
-              <XAxis
-                dataKey={getLabelX()}
-                axisLine={false}
-                tickLine={false}
-                style={{ fontWeight: 500, fontSize: 13, fill: '#222' }}
-              />
-              <YAxis dataKey="total_venda" domain={[0, yMax]} hide />
-              <Bar
-                dataKey="total_venda"
-                fill="#2563eb"
-                radius={[8, 8, 0, 0]}
-                isAnimationActive={true}
-                maxBarSize={maxBarSize}
-                yAxisId={0}
+        {/* Título fixo da página */}
+        <h1 className="text-2xl font-bold mb-4 text-blue-600">Vendas</h1>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24 }}>
+          {/* Card do gráfico com título interno */}
+          <div style={{
+            background: "#fff",
+            borderRadius: 16,
+            boxShadow: "0 4px 24px #0001",
+            padding: "24px 24px 16px 24px",
+            minHeight: 340,
+            position: "relative",
+            display: "flex",
+            flexDirection: "column"
+          }}>
+            {/* Título dinâmico dentro do card, sempre visível no topo */}
+            <div style={{
+              fontSize: 20,
+              fontWeight: 600,
+              color: "#2563eb",
+              marginBottom: 8,
+              textAlign: "left",
+              zIndex: 2
+            }}>
+              {getTitulo()}
+              {/* Legenda da escala */}
+              {(escala && (nivel === "ano" || nivel === "mes" || nivel === "dia")) && (
+                <div style={{ fontSize: 13, color: "#666", fontWeight: 400, marginTop: 2 }}>
+                  {escala === "K" && "Valores em mil"}
+                  {escala === "M" && "Valores em milhões"}
+                  {escala === "B" && "Valores em bilhões"}
+                </div>
+              )}
+            </div>
+            {nivel === "ano" && (
+              <div
+                ref={anosDropdownRef}
+                style={{
+                  position: "absolute",
+                  top: 16,
+                  right: 16,
+                  zIndex: 10
+                }}
               >
-                <LabelList
-                  dataKey="total_venda"
-                  position="top"
-                  formatter={formatNumber}
-                  style={{ fill: '#222', fontWeight: 500, fontSize: 12 }}
+                <button
+                  style={{
+                    background: "none",
+                    border: "none",
+                    padding: 4,
+                    cursor: "pointer"
+                  }}
+                  onClick={() => setShowAnosDropdown((v) => !v)}
+                  title="Selecionar período"
+                >
+                  <Calendar size={22} color="#2563eb" />
+                </button>
+                {showAnosDropdown && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 32,
+                      right: 0,
+                      background: "#fff",
+                      border: "1px solid #dbeafe",
+                      borderRadius: 8,
+                      boxShadow: "0 4px 16px #0001",
+                      minWidth: 170,
+                      padding: "4px 0"
+                    }}
+                  >
+                    <div
+                      style={{
+                        padding: "8px 16px",
+                        cursor: "pointer",
+                        color: anosExibidos === 5 ? "#2563eb" : "#222",
+                        fontWeight: anosExibidos === 5 ? 600 : 400,
+                        background: anosExibidos === 5 ? "#eff6ff" : "transparent"
+                      }}
+                      onClick={() => {
+                        setAnosExibidos(5);
+                        setShowAnosDropdown(false);
+                      }}
+                    >
+                      Últimos 5 anos
+                    </div>
+                    <div
+                      style={{
+                        padding: "8px 16px",
+                        cursor: "pointer",
+                        color: anosExibidos === 10 ? "#2563eb" : "#222",
+                        fontWeight: anosExibidos === 10 ? 600 : 400,
+                        background: anosExibidos === 10 ? "#eff6ff" : "transparent"
+                      }}
+                      onClick={() => {
+                        setAnosExibidos(10);
+                        setShowAnosDropdown(false);
+                      }}
+                    >
+                      Últimos 10 anos
+                    </div>
+                    <div
+                      style={{
+                        padding: "8px 16px",
+                        cursor: "pointer",
+                        color: anosExibidos === 0 ? "#2563eb" : "#222",
+                        fontWeight: anosExibidos === 0 ? 600 : 400,
+                        background: anosExibidos === 0 ? "#eff6ff" : "transparent"
+                      }}
+                      onClick={() => {
+                        setAnosExibidos(0);
+                        setShowAnosDropdown(false);
+                      }}
+                    >
+                      Todos
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart
+                data={dadosComVariacao}
+                margin={{
+                  top: 16,
+                  right: 0,
+                  left: 0,
+                  bottom: 8
+                }}
+                barCategoryGap={10}
+                onClick={({ activeTooltipIndex }) => {
+                  if (activeTooltipIndex != null) {
+                    handleBarClick(dados[activeTooltipIndex]);
+                  }
+                }}
+              >
+                <XAxis
+                  dataKey={nivel === "mes" ? "mes" : nivel === "dia" ? "dia" : "ano"}
+                  axisLine={false}
+                  tickLine={false}
+                  style={{
+                    fontWeight: 500,
+                    fontSize: nivel === "dia" ? 12 : 13, // diminui um ponto no diário
+                    fill: '#222'
+                  }}
+                  tickFormatter={
+                    nivel === "mes"
+                      ? (mes) => {
+                          const meses = ["", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+                          return meses[mes] || mes;
+                        }
+                      : nivel === "dia"
+                      ? (dia) => dia
+                      : undefined
+                  }
                 />
-              </Bar>
-              <Tooltip
-                formatter={(v: number) => formatNumber(v)}
-                contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 2px 8px #0001' }}
-                cursor={{ fill: '#2563eb22' }}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+                <YAxis dataKey="total_venda" domain={[0, yMax]} hide />
+                <Bar
+                  dataKey="total_venda"
+                  fill="#2563eb"
+                  radius={[8, 8, 0, 0]}
+                  isAnimationActive={true}
+                  maxBarSize={60}
+                  yAxisId={0}
+                >
+                  {/* Valor da barra */}
+                  <LabelList
+                    dataKey="total_venda"
+                    position="top"
+                    formatter={formatNumber}
+                    style={{
+                      fill: '#222',
+                      fontWeight: 300, // mais fino
+                      fontSize: nivel === "dia" ? 11 : nivel === "mes" ? 11 : 13, // anual agora 13 (antes era 14)
+                      fontFamily: 'Bahnschrift, Inter, Roboto Mono, Menlo, monospace',
+                      fontVariantNumeric: 'tabular-nums'
+                    }}
+                    offset={16}
+                  />
+                  {/* Variação percentual em relação ao ano anterior */}
+                  <LabelList
+                    dataKey="variacao"
+                    position="top"
+                    content={(props) => {
+                      const { x, y, value, index, width } = props as {
+                        x?: number | string;
+                        y?: number | string;
+                        value?: string | number;
+                        index?: number;
+                        width?: number;
+                      };
+                      if (typeof index !== "number" || index === 0 || typeof value !== "number") return null;
+                      // Pegue o valor do ano anterior do array de dadosComVariacao
+                      const dados = dadosComVariacao as { total_venda: number }[];
+                      const anterior = dados[index - 1]?.total_venda ?? 0;
+                      if (!anterior) return null;
+                      const percentual = Math.round((value / anterior) * 100);
+                      const positivo = percentual > 0;
+
+                      // Centraliza exatamente com a barra (x + width/2)
+                      return (
+                        <text
+                          x={typeof x === "number" && typeof width === "number" ? x + width / 2 : x}
+                          y={typeof y === "number" ? y - 4 : y}
+                          textAnchor="middle"
+                          fontSize={11}
+                          fontWeight={600}
+                          fontFamily="Bahnschrift, Inter, Roboto Mono, Menlo, monospace"
+                          fill={positivo ? "#22c55e" : "#ef4444"}
+                        >
+                          {positivo ? "▲" : "▼"} {Math.abs(percentual)}%
+                        </text>
+                      );
+                    }}
+                  />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+            {nivel !== "ano" && (
+              <button
+                className="ml-auto"
+                onClick={voltarNivel}
+                title="Voltar"
+                style={{
+                  position: "absolute",
+                  top: 16,
+                  right: 16,
+                  zIndex: 3,
+                  background: "none",
+                  border: "none",
+                  padding: 4,
+                  cursor: "pointer"
+                }}
+              >
+                <ArrowLeft size={22} color="#888" />
+              </button>
+            )}
+          </div>
+
+          {[1, 2, 3].map(i => (
+            <div key={i} style={{
+              background: "#fff",
+              borderRadius: 16,
+              boxShadow: "0 4px 24px #0001",
+              padding: 24,
+              minHeight: 340,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#aaa",
+              fontWeight: 500,
+              fontSize: 18
+            }}>
+              Em breve...
+            </div>
+          ))}
         </div>
-        {nivel !== "ano" && (
-          <button
-            className="ml-auto bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded text-sm mt-4"
-            onClick={voltarNivel}
-          >
-            Voltar
-          </button>
-        )}
       </div>
     </div>
   );

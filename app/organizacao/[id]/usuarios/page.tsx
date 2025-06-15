@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Pencil, Trash2, ArrowLeft } from "lucide-react";
+import { Pencil, Trash2, Users, Plus, Save, X, ArrowLeft } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import Header from "../../../../components/Header";
 import MenuLateral from "../../../../components/MenuLateral";
@@ -21,11 +21,23 @@ export default function UsuariosPage() {
   const id_organizacao = Number(params.id);
 
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [organizacao, setOrganizacao] = useState<{ nome: string } | null>(null);
+  const [organizacao, setOrganizacao] = useState<{ nome: string; nome_organizacao?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [editando, setEditando] = useState<number | null>(null);
-  const [form, setForm] = useState({ nome: "", email: "" });
+  const [form, setForm] = useState({ nome: "", email: "", senha: "" });
   const [menuAberto, setMenuAberto] = useState(false);
+  const [usuario, setUsuario] = useState("");
+
+  useEffect(() => {
+    const nome_usuario = localStorage.getItem("usuario");
+    const id_organizacao_storage = localStorage.getItem("id_organizacao");
+
+    if (!nome_usuario || !id_organizacao_storage) {
+      router.push("/");
+    } else {
+      setUsuario(nome_usuario);
+    }
+  }, []);
 
   useEffect(() => {
     if (!id_organizacao || isNaN(id_organizacao)) {
@@ -67,20 +79,24 @@ export default function UsuariosPage() {
 
   function handleEditar(user: Usuario) {
     setEditando(user.id_usuario);
-    setForm({ nome: user.nome, email: user.email });
+    setForm({ nome: user.nome, email: user.email, senha: "" });
   }
 
   async function handleSalvar() {
     if (!form.nome.trim() || !form.email.trim() || editando === null) return;
 
     try {
+      const payload: any = {
+        nome: form.nome.trim(),
+        email: form.email.trim(),
+        id_organizacao,
+      };
+      if (form.senha.trim()) payload.senha = form.senha.trim();
+
       const res = await fetch(`${API_URL}/usuarios/${editando}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nome: form.nome.trim(),
-          email: form.email.trim(),
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) throw new Error("Erro ao salvar usuário");
@@ -91,7 +107,7 @@ export default function UsuariosPage() {
         )
       );
       setEditando(null);
-      setForm({ nome: "", email: "" });
+      setForm({ nome: "", email: "", senha: "" });
     } catch (error) {
       console.error("Erro ao salvar:", error);
     }
@@ -99,7 +115,7 @@ export default function UsuariosPage() {
 
   async function handleAdicionar(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.nome.trim() || !form.email.trim()) return;
+    if (!form.nome.trim() || !form.email.trim() || !form.senha.trim()) return;
 
     try {
       const res = await fetch(`${API_URL}/usuarios`, {
@@ -112,7 +128,7 @@ export default function UsuariosPage() {
 
       const novo = await res.json();
       setUsuarios((prev) => [...prev, novo]);
-      setForm({ nome: "", email: "" });
+      setForm({ nome: "", email: "", senha: "" });
     } catch (error) {
       console.error("Erro ao adicionar:", error);
     }
@@ -128,7 +144,7 @@ export default function UsuariosPage() {
       setUsuarios((prev) => prev.filter((u) => u.id_usuario !== id));
       if (editando === id) {
         setEditando(null);
-        setForm({ nome: "", email: "" });
+        setForm({ nome: "", email: "", senha: "" });
       }
     } catch (error) {
       console.error("Erro ao remover:", error);
@@ -140,9 +156,9 @@ export default function UsuariosPage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#fff", display: "flex", flexDirection: "column" }}>
-      <Header usuario="Elton" onMenuClick={() => setMenuAberto(true)} />
-      <MenuLateral aberto={menuAberto} usuario="Elton" onClose={() => setMenuAberto(false)} />
+    <div style={{ minHeight: "100vh", backgroundColor: "#fff", color: "#111827", display: "flex", flexDirection: "column" }}>
+      <Header usuario={usuario} onMenuClick={() => setMenuAberto(true)} />
+      <MenuLateral aberto={menuAberto} usuario={usuario} onClose={() => setMenuAberto(false)} />
       <div style={{ height: 56 }} />
 
       <div
@@ -157,21 +173,19 @@ export default function UsuariosPage() {
           alignItems: "center",
           justifyContent: "center",
           gap: 12,
+          background: "#fff",
         }}
       >
-        <button
-          onClick={() => router.back()}
-          style={{ background: "none", border: "none", color: "#2563eb", cursor: "pointer" }}
-        >
+        <button onClick={() => router.back()} style={{ background: "none", border: "none", color: "#2563eb", cursor: "pointer" }}>
           <ArrowLeft size={22} />
         </button>
-        Usuários {organizacao ? `- ${organizacao.nome}` : ""}
+        Usuários {organizacao ? `- ${organizacao.nome_organizacao || organizacao.nome || ""}` : ""}
       </div>
 
       <main style={{ flex: 1, display: "flex", justifyContent: "center", padding: "2rem 0" }}>
         <div
           style={{
-            maxWidth: 540,
+            maxWidth: 600,
             width: "100%",
             background: "#fff",
             borderRadius: 16,
@@ -188,46 +202,50 @@ export default function UsuariosPage() {
                 handleAdicionar(e);
               }
             }}
-            style={{
-              display: "flex",
-              gap: 12,
-              marginBottom: 28,
-              flexWrap: "wrap",
-            }}
+            style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap", alignItems: "flex-end" }}
           >
-            <div style={{ flex: 2 }}>
-              <label>Nome</label>
-              <input
-                type="text"
-                value={form.nome}
-                onChange={(e) => setForm({ ...form, nome: e.target.value })}
-                required
-                style={{ width: "100%", padding: "0.5rem", borderRadius: 8 }}
-              />
-            </div>
-            <div style={{ flex: 2 }}>
-              <label>Email</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                required
-                style={{ width: "100%", padding: "0.5rem", borderRadius: 8 }}
-              />
-            </div>
-            <button type="submit" style={{ padding: "0.7rem 1.2rem", borderRadius: 8, background: "#2563eb", color: "#fff" }}>
-              {editando !== null ? "Salvar" : "Adicionar"}
+            <input
+              type="text"
+              placeholder="Nome"
+              value={form.nome}
+              onChange={(e) => setForm({ ...form, nome: e.target.value })}
+              required
+              style={{ flex: 1, padding: 10, borderRadius: 8, border: "1px solid #ccc" }}
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              required
+              style={{ flex: 1, padding: 10, borderRadius: 8, border: "1px solid #ccc" }}
+            />
+            <input
+              type="password"
+              placeholder={editando !== null ? "Nova senha (opcional)" : "Senha"}
+              value={form.senha}
+              onChange={(e) => setForm({ ...form, senha: e.target.value })}
+              required={editando === null}
+              style={{ flex: 1, padding: 10, borderRadius: 8, border: "1px solid #ccc" }}
+            />
+            <button
+              type="submit"
+              style={{ background: "#22c55e", border: "none", borderRadius: 8, padding: 10, color: "#fff", cursor: "pointer" }}
+              title={editando !== null ? "Salvar" : "Adicionar"}
+            >
+              {editando !== null ? <Save size={18} /> : <Plus size={18} />}
             </button>
             {editando !== null && (
               <button
                 type="button"
                 onClick={() => {
                   setEditando(null);
-                  setForm({ nome: "", email: "" });
+                  setForm({ nome: "", email: "", senha: "" });
                 }}
-                style={{ background: "#ef4444", color: "#fff", borderRadius: 8, padding: "0.7rem 1.2rem" }}
+                style={{ background: "#ef4444", border: "none", borderRadius: 8, padding: 10, color: "#fff", cursor: "pointer" }}
+                title="Cancelar"
               >
-                Cancelar
+                <X size={18} />
               </button>
             )}
           </form>
@@ -235,9 +253,9 @@ export default function UsuariosPage() {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "#f3f4f6" }}>
-                <th style={{ textAlign: "left", padding: "8px" }}>Nome</th>
-                <th style={{ textAlign: "left", padding: "8px" }}>Email</th>
-                <th style={{ textAlign: "center", padding: "8px" }}>Ações</th>
+                <th style={{ padding: 10, textAlign: "left" }}>Nome</th>
+                <th style={{ padding: 10, textAlign: "left" }}>Email</th>
+                <th style={{ padding: 10, textAlign: "center" }}>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -246,16 +264,33 @@ export default function UsuariosPage() {
                   <td colSpan={3} style={{ textAlign: "center", padding: 20 }}>Nenhum usuário cadastrado.</td>
                 </tr>
               ) : (
-                usuarios.map((u) => (
-                  <tr key={u.id_usuario}>
-                    <td style={{ padding: "8px" }}>{u.nome}</td>
-                    <td style={{ padding: "8px" }}>{u.email}</td>
+                usuarios.map((u, idx) => (
+                  <tr key={u.id_usuario} style={{ background: idx % 2 === 0 ? "#fff" : "#f9fafb" }}>
+                    <td style={{ padding: 10 }}>{u.nome}</td>
+                    <td style={{ padding: 10 }}>{u.email}</td>
                     <td style={{ textAlign: "center" }}>
-                      <button onClick={() => handleEditar(u)} style={{ color: "#fbbf24", marginRight: 8 }}>
-                        <Pencil size={18} />
+                      <button
+                        onClick={() => handleEditar(u)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          marginRight: 8,
+                          cursor: "pointer",
+                        }}
+                        title="Editar"
+                      >
+                        <Pencil size={18} color="#444" />
                       </button>
-                      <button onClick={() => handleRemover(u.id_usuario)} style={{ color: "#ef4444" }}>
-                        <Trash2 size={18} />
+                      <button
+                        onClick={() => handleRemover(u.id_usuario)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                        }}
+                        title="Remover"
+                      >
+                        <Trash2 size={18} color="#444" />
                       </button>
                     </td>
                   </tr>
