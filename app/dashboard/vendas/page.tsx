@@ -11,8 +11,6 @@ import {
 import { useEffect, useState, useRef } from "react";
 import Header from "../../../components/Header";
 import MenuLateral from "../../../components/MenuLateral";
-import { Select } from "../../../components/ui/select";
-import { Label } from "../../../components/ui/label";
 import { ArrowLeft, Calendar } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -45,8 +43,6 @@ export default function VendasPage() {
   const [anoSelecionado, setAnoSelecionado] = useState<number | null>(null);
   const [mesSelecionado, setMesSelecionado] = useState<number | null>(null);
   const [dados, setDados] = useState<Dado[]>([]);
-  const [tipo, setTipo] = useState("");
-  const [empresa, setEmpresa] = useState("");
   const [menuAberto, setMenuAberto] = useState(false);
   const [usuario, setUsuario] = useState("");
   const [organizacaoNome, setOrganizacaoNome] = useState("");
@@ -70,8 +66,8 @@ export default function VendasPage() {
       let url = `${API_URL}/vendas/${nivel}?id_organizacao=${id_organizacao}`;
       if (anoSelecionado) url += `&ano=${anoSelecionado}`;
       if (mesSelecionado) url += `&mes=${mesSelecionado}`;
-      if (tipo) url += `&tipo=${tipo}`;
-      if (empresa) url += `&empresa=${empresa}`;
+      // if (tipo) url += `&tipo=${tipo}`;
+      // if (empresa) url += `&empresa=${empresa}`;
 
       try {
         const response = await fetch(url);
@@ -92,7 +88,7 @@ export default function VendasPage() {
     };
 
     buscarDados();
-  }, [nivel, anoSelecionado, mesSelecionado, tipo, empresa, anosExibidos]);
+  }, [nivel, anoSelecionado, mesSelecionado, anosExibidos]);
 
   useEffect(() => {
     if ((nivel === "ano" || nivel === "mes" || nivel === "dia") && dados.length > 0) {
