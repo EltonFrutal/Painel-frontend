@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Pencil, Trash2, Users, Plus, Save, X, ArrowLeft } from "lucide-react";
+import { Pencil, Trash2, Plus, Save, X, ArrowLeft } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import Header from "../../../../components/Header";
 import MenuLateral from "../../../../components/MenuLateral";
@@ -37,7 +37,7 @@ export default function UsuariosPage() {
     } else {
       setUsuario(nome_usuario);
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (!id_organizacao || isNaN(id_organizacao)) {
@@ -86,7 +86,7 @@ export default function UsuariosPage() {
     if (!form.nome.trim() || !form.email.trim() || editando === null) return;
 
     try {
-      const payload: any = {
+      const payload: { nome: string; email: string; id_organizacao: number; senha?: string } = {
         nome: form.nome.trim(),
         email: form.email.trim(),
         id_organizacao,

@@ -141,10 +141,6 @@ export default function VendasPage() {
     }
   };
 
-  const getLabelX = () => {
-    return nivel === 'ano' ? 'ano' : nivel === 'mes' ? 'mes' : 'dia';
-  };
-
   const getTitulo = () => {
     if (nivel === 'ano') return 'por Ano';
     if (nivel === 'mes') return `Mensal - Ano ${anoSelecionado}`;
@@ -163,7 +159,6 @@ export default function VendasPage() {
 
   const maxValue = Math.max(...dados.map(d => d.total_venda || 0));
   const yMax = Math.ceil(maxValue * 1.1);
-  const maxBarSize = nivel === 'mes' ? 80 : nivel === 'ano' ? 60 : 10;
 
   const dadosComVariacao = nivel === "ano" ? adicionarVariacaoAbsoluta(dados as DadoAno[]) : dados;
 
